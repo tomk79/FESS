@@ -48,6 +48,11 @@ class px_cores_site{
 			return true;
 		}
 
+		if( preg_match('/^clearcache(?:\\..*)?$/si', $this->px->req()->get_param('PX')) ){
+			// clearcacheを実行する際にはCSVの読み込みを行わない。どうせ直後に消されるので。
+			return true;
+		}
+
 		$path_sitemap_definition = $this->px->get_conf('paths.px_dir').'configs/sitemap_definition.csv';
 		$path_sitemap_dir = $this->px->get_conf('paths.px_dir').'sitemaps/';
 		$ary_sitemap_files = $this->px->dbh()->ls( $path_sitemap_dir );
@@ -74,16 +79,44 @@ class px_cores_site{
 				continue;
 			}
 			$tmp_sitemap = $this->px->dbh()->read_csv_utf8( $path_sitemap_dir.$basename_sitemap_csv );
-			foreach ($tmp_sitemap as $row) {
+			$tmp_sitemap_definition = $this->sitemap_definition;
+			foreach ($tmp_sitemap as $row_number=>$row) {
 				set_time_limit(30);//タイマー延命
 				$num_auto_pid++;
 				$tmp_array = array();
-				foreach ($this->sitemap_definition as $defrow) {
-					$tmp_array[$defrow['key']] = $row[$defrow['num']];
-				}
-				if( preg_match( '/^(?:\*)/is' , $tmp_array['path'] ) ){
-					// アスタリスク始まりの場合はコメント行とみなす。
+				if( preg_match( '/^(?:\*)/is' , $row[0] ) ){
+					if( $row_number > 0 ){
+						// アスタリスク始まりの場合はコメント行とみなす。
+						continue;
+					}
+					// アスタリスク始まりでも、0行目の場合は、定義行とみなす。
+					// 定義行とみなす条件: 0行目の全セルがアスタリスク始まりであること。
+					$is_definition_row = true;
+					foreach($row as $cell_value){
+						if( !preg_match( '/^(?:\*)/is' , $cell_value ) ){
+							$is_definition_row = false;
+						}
+					}
+					if( !$is_definition_row ){
+						continue;
+					}
+					$tmp_sitemap_definition = array();
+					$tmp_col_id = 'A';
+					foreach($row as $tmp_col_number=>$cell_value){
+						$cell_value = trim(preg_replace('/^\*/si', '', $cell_value));
+						$tmp_sitemap_definition[$cell_value] = array(
+							'num'=>$tmp_col_number,
+							'col'=>$tmp_col_id++,
+							'key'=>$cell_value,
+							'name'=>$cell_value,
+						);
+					}
+					unset($is_definition_row);
+					unset($cell_value);
 					continue;
+				}
+				foreach ($tmp_sitemap_definition as $defrow) {
+					$tmp_array[$defrow['key']] = $row[$defrow['num']];
 				}
 				if( !preg_match( '/^(?:\/|alias\:|javascript\:|\#|[a-zA-Z0-9]+\:\/\/)/is' , $tmp_array['path'] ) ){
 					// 不正な形式のチェック
@@ -94,7 +127,7 @@ class px_cores_site{
 					case 'javascript':
 					case 'anchor':
 						// 直リンク系のパスをエイリアス扱いにする
-						$tmp_array['path'] = 'alias:'.$tmp_array['path'];
+						$tmp_array['path'] = preg_replace('/^(?:alias:)?/s', 'alias:', $tmp_array['path']);
 						break;
 					default:
 						// スラ止のパスに index.html を付加する。
@@ -132,6 +165,8 @@ class px_cores_site{
 					$tmp_path_top = preg_replace( '/\/$/si' , '/index.html' , $tmp_path_top );//index.htmlを付加する。
 					if( $tmp_array['path'] == $tmp_path_top ){
 						$tmp_array['id'] = '';
+					}elseif( !strlen($tmp_array['id']) ){
+						$tmp_array['id'] = ':auto_page_id.'.($num_auto_pid);
 					}
 					unset($tmp_path_top);
 				}
@@ -438,9 +473,26 @@ class px_cores_site{
 	 * ページIDからページ情報を得る
 	 */
 	public function get_page_info_by_id( $page_id ){
-		$path = $this->sitemap_id_map[$page_id];
-		return $this->get_page_info($path);
+		return $this->get_page_info($page_id);
 	}
+
+	/**
+	 * パスからページIDを得る
+	 */
+	public function get_page_id_by_path( $path ){
+		$page_info = $this->get_page_info($path);
+		return $page_info['id'];
+	}
+
+	/**
+	 * ページIDからパスを得る
+	 */
+	public function get_page_path_by_id( $page_id ){
+		$page_info = $this->get_page_info($page_id);
+		return $page_info['path'];
+	}
+
+
 
 	/**
 	 * 現在のページの情報を得る
@@ -768,7 +820,7 @@ class px_cores_site{
 
 	/**
 	 * パンくず配列を取得する
-	 * @param 基点とするページのパス。またはID。
+	 * @param $path = 基点とするページのパス、またはID。(省略時カレントページ)
 	 * @return 親ページまでのパンくず階層をあらわす配列。自身を含まない。$pathがトップページを示す場合は、空の配列。
 	 */
 	public function get_breadcrumb_array( $path = null ){
@@ -788,6 +840,29 @@ class px_cores_site{
 
 		return $rtn;
 	}//get_breadcrumb_array()
+
+	/**
+	 * ページが、パンくず内に存在しているか調べる
+	 * @param $page_path = 調べる対象のページのパス、またはID。
+	 * @param $path = 基点とするページのパス、またはID。(省略時カレントページ)
+	 */
+	public function is_page_in_breadcrumb( $page_path, $path = null ){
+		if( is_null($path) ){
+			$path = $this->px->req()->get_request_file_path();
+		}
+		$breadcrumb = $this->get_breadcrumb_array($path);
+		$current_page_id = $this->get_page_id_by_path($path);
+		$target_page_id = $this->get_page_id_by_path($page_path);
+		if( $current_page_id == $target_page_id ){
+			return true;
+		}
+		foreach( $breadcrumb as $row ){
+			if( $target_page_id == $this->get_page_id_by_path($row) ){
+				return true;
+			}
+		}
+		return false;
+	}// is_page_in_breadcrumb()
 
 	/**
 	 * パス文字列を受け取り、種類を判定する。

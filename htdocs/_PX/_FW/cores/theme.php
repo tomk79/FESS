@@ -26,7 +26,7 @@ class px_cores_theme{
 			$this->theme_id = trim($this->px->get_conf('system.default_theme_id'));
 		}
 		if( strlen( $this->px->req()->get_session('THEME') ) ){
-			$this->theme_id = $this->px->req()->get_session('THEME');
+			$this->set_theme_id( $this->px->req()->get_session('THEME') );
 		}
 	}//__construct()
 
@@ -41,7 +41,7 @@ class px_cores_theme{
 			//  指定のテーマディレクトリが存在しなかったら。
 			//	※レイアウト default.html は必須です。
 			$this->px->error()->error_log('存在しないテーマ['.$theme_id.']を選択しました。',__FILE__,__LINE__);
-			return false;
+			$theme_id = 'default';
 		}
 		$this->theme_id = $theme_id;
 
@@ -68,7 +68,7 @@ class px_cores_theme{
 	 */
 	public function set_layout_id( $layout_id ){
 		if( !strlen( $layout_id ) ){ return false; }
-		if( !preg_match( '/^[a-zA-Z0-9\_\-]+$/si' , $layout_id ) ){ return false; }
+		if( !preg_match( '/^[a-zA-Z0-9\_\-\/]+$/si' , $layout_id ) ){ return false; }
 		$this->layout_id = $layout_id;
 		return true;
 	}
@@ -276,10 +276,11 @@ class px_cores_theme{
 	 */
 	public function mk_link( $linkto ){
 		$args = func_get_args();
+		$page_info = $this->px->site()->get_page_info($linkto);
 		$href = $this->href($linkto);
 		$hrefc = $this->href($this->px->req()->get_request_file_path());
-		$label = $this->px->site()->get_page_info($linkto,'title_label');
-		$page_id = $this->px->site()->get_page_info($linkto,'id');
+		$label = $page_info['title_label'];
+		$page_id = $page_info['id'];
 		if( is_string($args[1]) ){
 			//  第2引数が文字列なら
 			//  リンクのラベルとして採用
@@ -299,14 +300,8 @@ class px_cores_theme{
 			$is_current = !empty($options['current']);
 		}elseif($href==$hrefc){
 			$is_current = true;
-		}else{
-			foreach( $breadcrumb as $tmp_page_id ){
-				if(!strlen($tmp_page_id)){continue;}
-				if( $page_id == $tmp_page_id ){
-					$is_current = true;
-					break;
-				}
-			}
+		}elseif( $this->px->site()->is_page_in_breadcrumb($linkto) ){
+			$is_current = true;
 		}
 		$is_popup = false;
 		if( $this->px->site()->get_page_info($linkto,'layout') == 'popup' ){
@@ -314,13 +309,27 @@ class px_cores_theme{
 		}
 		$label = (!is_null($label)?$label:$href); // labelがnullの場合、リンク先をラベルとする
 
+		$classes = array();
+		// CSSのクラスを付加
+		if( is_string($options['class']) ){
+			$options['class'] = preg_split( '/\s+/', trim($options['class']) );
+		}
+		if( is_array($options['class']) ){
+			foreach($options['class'] as $class_row){
+				array_push($classes, trim($class_row));
+			}
+		}
+		if($is_current){
+			array_push($classes, 'current');
+		}
+
 		if( !$options['no_escape'] ){
 			// no_escape(エスケープしない)指示がなければ、
 			// HTMLをエスケープする。
 			$label = t::h($label);
 		}
 
-		$rtn = '<a href="'.t::h($href).'"'.($is_current?' class="current"':'').''.($is_popup?' onclick="window.open(this.href);return false;"':'').'>'.$label.'</a>';
+		$rtn = '<a href="'.t::h($href).'"'.(count($classes)?' class="'.t::h(implode(' ', $classes)).'"':'').''.($is_popup?' onclick="window.open(this.href);return false;"':'').'>'.$label.'</a>';
 		return $rtn;
 	}
 
@@ -438,6 +447,7 @@ class px_cores_theme{
 		$indexCounter = array();
 		$i = 0;
 		while( 1 ){
+			set_time_limit(60*30);
 			if( !preg_match( '/^(.*?)(<\!\-\-(?:.*?)\-\->|<script(?:\s.*?)?>(?:.*?)<\/script>|<h([2-6])(?:\s.*?)?>(.*?)<\/h\3>)(.*)$/is' , $tmp_cont , $matched ) ){
 				$content .= $tmp_cont;
 				break;
@@ -468,6 +478,7 @@ class px_cores_theme{
 			$content .= $matched[2];
 			$tmp_cont = $matched[5];
 		}
+		set_time_limit(30);
 
 		$anchorlinks = '';
 		$topheadlevel = 2;

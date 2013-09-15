@@ -88,7 +88,7 @@ class px_pxcommands_publish extends px_bases_pxcommand{
 			$src .= '<div class="unit">'."\n";
 			$src .= '	<p>次のパスとそれ以下のページやファイルをパブリッシュします。</p>'."\n";
 			$src .= '	<ul>'."\n";
-			$src .= '		<li>'.t::h( $this->path_target ).'</li>'."\n";
+			$src .= '		<li style="word-break:break-all;">'.t::h( $this->path_target ).'</li>'."\n";
 			$src .= '	</ul>'."\n";
 			$src .= '</div><!-- /.unit -->'."\n";
 			$internal_errors = $this->get_internal_error_log();
@@ -130,6 +130,7 @@ class px_pxcommands_publish extends px_bases_pxcommand{
 		@header('Content-type: text/plain');
 		error_reporting(0);
 		print ''.$command[0].' | Pickles Framework (version:'.$this->px->get_version().')'."\n";
+		print 'project "'.$this->px->get_conf('project.name').'" ('.$this->px->get_conf('project.id').')'."\n";
 		print '------'."\n";
 		print 'PX command "'.$command[0].'" executed.'."\n";
 		if( $this->px->req()->is_cmd() ){
@@ -301,6 +302,9 @@ class px_pxcommands_publish extends px_bases_pxcommand{
 		if( strlen($this->px->get_conf('publish.path_publish_dir')) && @is_dir($this->px->get_conf('publish.path_publish_dir')) ){
 			$this->path_publish_dir = t::realpath($this->px->get_conf('publish.path_publish_dir')).'/';
 		}
+		if( !is_dir($this->px->get_conf('paths.px_dir').'_sys/publish/') ){
+			$this->px->dbh()->mkdir($this->px->get_conf('paths.px_dir').'_sys/publish/');
+		}
 		$this->path_tmppublish_dir = t::realpath($this->px->get_conf('paths.px_dir').'_sys/publish/').'/';
 
 		array_push( $this->paths_ignore , t::realpath($this->px->get_conf('paths.px_dir')) );
@@ -308,6 +312,10 @@ class px_pxcommands_publish extends px_bases_pxcommand{
 		array_push( $this->paths_ignore , t::realpath($this->path_docroot_dir.'/_px_execute.php') );
 		array_push( $this->paths_ignore , '*/.DS_Store' );
 		array_push( $this->paths_ignore , '*/Thumbs.db' );
+		array_push( $this->paths_ignore , '*.nopublish/*' );
+		array_push( $this->paths_ignore , '*/.svn/' );
+		array_push( $this->paths_ignore , '*/.git/' );
+		array_push( $this->paths_ignore , '*/.gitignore' );
 
 		$conf_paths_ignore = preg_split('/\r\n|\r|\n|\,|\;/',$this->px->get_conf('publish.paths_ignore'));
 		clearstatcache();
@@ -570,6 +578,7 @@ class px_pxcommands_publish extends px_bases_pxcommand{
 					}
 					$tmp_src = preg_replace('/\r\n|\r|\n/si',$eof_code,$tmp_src);
 				}
+				$this->px->dbh()->mkdir_all( dirname($this->path_tmppublish_dir.'/htdocs/'.$path) );
 				$result = $this->px->dbh()->file_overwrite( $this->path_tmppublish_dir.'/htdocs/'.$path , $tmp_src );
 				print ''."\n";
 
@@ -586,6 +595,7 @@ class px_pxcommands_publish extends px_bases_pxcommand{
 				}
 				break;
 			default:
+				$this->px->dbh()->mkdir_all( dirname($this->path_tmppublish_dir.'/htdocs/'.$path) );
 				$result = $this->px->dbh()->copy( $_SERVER['DOCUMENT_ROOT'].$path , $this->path_tmppublish_dir.'/htdocs/'.$path );
 				print ''."\n";
 
