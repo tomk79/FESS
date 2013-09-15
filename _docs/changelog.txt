@@ -2,6 +2,11 @@
  * FESS (FrontEnd Standard Specification) 更新履歴
  */
 
+■FESS 1.1.0b2 (2013/**/**)
+
+- ******
+
+
 ■FESS 1.1.0b1 (2013/9/15)
 
 - ボックスモジュールを追加。
