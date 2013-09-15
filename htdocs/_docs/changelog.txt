@@ -1,0 +1,16 @@
+/**
+ * FESS changelog
+ */
+
+■FESS 1.1.0 (2013/**/**)
+
+- ボックスモジュールを追加。
+- .must を追加。.form_elements から独立。
+- ul.horizontal を追加。
+- form要素をinlineでリセットしないようにした。
+
+
+■FESS 1.0.0 (2013/4/3)
+
+- 初版リリース
+
