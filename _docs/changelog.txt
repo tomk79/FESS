@@ -2,7 +2,15 @@
  * FESS (FrontEnd Standard Specification) 更新履歴
  */
 
-■FESS 1.0.0 (2013/4/1)
+■FESS 1.1.0 (2013/**/**)
 
-- 初回リリース。
+- ボックスモジュールを追加。
+- .must を追加。.form_elements から独立。
+- ul.horizontal を追加。
+- form要素をinlineでリセットしないようにした。
+
+
+■FESS 1.0.0 (2013/4/3)
+
+- 初回リリース
 
