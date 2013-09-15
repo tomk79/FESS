@@ -1,0 +1,8 @@
+/**
+ * FESS (FrontEnd Standard Specification) 更新履歴
+ */
+
+■FESS 1.0.0 (2013/4/1)
+
+- 初回リリース。
+
