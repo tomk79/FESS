@@ -6,6 +6,7 @@
 
 - ボックスモジュールを追加。
 - .must を追加。.form_elements から独立。
+- パーツモジュールに、インラインで使用できる .notes を追加。
 - ul.horizontal を追加。
 - form要素をinlineでリセットしないようにした。
 

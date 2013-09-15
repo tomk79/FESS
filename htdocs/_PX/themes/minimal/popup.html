@@ -1,0 +1,52 @@
+<?php
+	//↓ $page_info にページの情報を格納しています。
+	//	 test::var_dump( $page_info ); で、変数の内容を確認できます。
+	$page_info = $this->px->site()->get_current_page_info();
+	$tmp_class_name = $px->load_pxtheme_class('/custom/funcs.php');
+	$obj_custom_theme = new $tmp_class_name($this->px);
+?><!doctype html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<?php /*
+↓ t::h() は、htmlspecialchars() のショートカットです。
+*/ ?>
+<title><?php print t::h($page_info['title']); ?> | <?php print t::h($px->get_conf('project.name')); ?></title>
+<?php
+	include( $px->realpath_theme_files().'inc/setup.inc' );
+
+	//↓コンテンツから受け取った
+	//	headセクション内用のソースを出力しています。
+	print $px->theme()->pull_content('head');
+?>
+</head>
+<body>
+<div id="page_top">
+<div class="theme_outline">
+<div class="theme_header">
+	<div class="logo"><?php print t::h($px->get_conf('project.name')); ?></div>
+</div><!-- /.theme_header -->
+<div class="theme_middle">
+<div class="theme_column1">
+<h1><?php print t::text2html( $page_info['title_h1'] ); ?></h1>
+<div id="content" class="contents">
+
+<?php
+	//↓コンテンツから受け取った
+	//	コンテンツエリアのソースを出力しています。
+	print $px->theme()->pull_content();
+?>
+
+</div><!-- /#content -->
+</div><!-- /.theme_column1 -->
+<div class="theme_column2">
+</div><!-- /.theme_column2 -->
+</div><!-- /theme_.middle -->
+<div class="theme_footer">
+	<div class="right small">[<a href="#page_top">ページの先頭へ戻る</a>]</div>
+	<div class="center">[<a href="javascript:window.close();">閉じる</a>]</div>
+</div><!-- /.theme_footer -->
+</div><!-- /.theme_outline -->
+</div><!-- /#page_top -->
+</body>
+</html>

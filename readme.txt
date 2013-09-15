@@ -18,7 +18,7 @@ FESS は、FrontEnd Standard Specification (フロントエンド標準仕様)�
 
 Pickles Framework については、次のページを参照してください。
 
-- Pickles Framework official web (http://pickles.pxt.jp/)
+- Pickles Framework official website (http://pickles.pxt.jp/)
 - Github リポジトリ (https://github.com/tomk79/PxFW-1.x)
 
 

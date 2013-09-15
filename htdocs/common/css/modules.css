@@ -263,6 +263,7 @@ a span.pdf:after{
  */
 .anchor_links{
 	padding:1.5em;
+	border:1px solid #999999;
 }
 .anchor_links .anchor_links-heading{
 	text-align:center;
@@ -305,6 +306,13 @@ a span.pdf:after{
  */
 .error{
 	color:#ff0000;
+}
+
+/**
+ * [parts] 注釈表示
+ */
+.notes{
+	color:#999999;
 }
 
 /**
@@ -703,7 +711,8 @@ table.form_elements ul.form_elements-errors li{
 .must{
 	color:#ff0000;
 	font-weight:bold;
-	display:block;
+	display:inline;
+	white-space:nowrap;
 }
 
 /**

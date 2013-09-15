@@ -24,6 +24,10 @@
 
 <p>
 	見出しタグ &lt;h2&gt;～&lt;h6&gt;要素のデフォルトスタイルは、素の状態で定義されます。デザインによっては、装飾用に&lt;span&gt;要素等の階層を追加する必要がある場合も想定されますが、学習しやすさのために <q>可能な限り、素のHTMLの構造のままでマークアップできるように設計する</q> コンセプトに従い、素のままのタグとされました。<br />
+	<!--
+		PxFW設計者向けコメント：
+		装飾用のタグを追加する必要がある場合は、出力前にDOM変換を行う実装を、テーマコレクション内の <code>_FW/styles/finalizer.php</code> に実装することを推奨します。<br />
+	-->
 </p>
 
 <div class="unit">
@@ -215,6 +219,13 @@
 </textarea></div>
 </div><!-- /.unit -->
 
+<h3>注釈表示 .notes</h3>
+<p><span class="notes">この文言は注釈表示です。</span></p>
+<div class="unit">
+	<div class="code"><textarea readonly="readonly">&lt;p&gt;&lt;span class=&quot;notes&quot;&gt;この文言は注釈表示です。&lt;/span&gt;&lt;/p&gt;
+</textarea></div>
+</div>
+
 
 <h2>リスト</h2>
 
@@ -245,7 +256,7 @@
 </textarea></div>
 </div><!-- /.unit -->
 
-<h3>注釈リスト .notes</h3>
+<h3>注釈リスト ul.notes</h3>
 
 <ul class="notes">
 	<li class="notes-li">※リスト内容</li>
@@ -268,7 +279,7 @@
 </div><!-- /.unit -->
 
 
-<h3>リストマークがないリスト .nomark</h3>
+<h3>リストマークがないリスト ul.nomark</h3>
 <ul class="nomark">
 	<li class="nomark-li">リスト内容</li>
 	<li class="nomark-li">リスト内容</li>
@@ -364,7 +375,7 @@
 </div><!-- /.unit -->
 
 
-<h3>注釈定義・説明リスト .notes</h3>
+<h3>注釈定義・説明リスト dl.notes</h3>
 
 <dl class="notes">
 	<dt class="notes-dt">※1 語句</dt>
