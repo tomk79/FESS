@@ -1,4 +1,4 @@
-htdocs/FESS/_caches/*
-htdocs/FESS/_PX/_sys/*
+htdocs/_caches/*
+htdocs/_PX/_sys/*
 .DS_Store
 Thumbs.db
