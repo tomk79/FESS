@@ -1,0 +1,469 @@
+@charset "UTF-8";
+
+@import "compass";
+@import "../mixin";
+
+/**
+ * [parts] 文字サイズ
+ */
+.xxlarge {
+  @include font_xxlarge;
+}
+
+.xlarge {
+  @include font_xlarge;
+}
+
+.large {
+  @include font_large;
+}
+
+.medium {
+  @include font_large;
+}
+
+.small {
+  @include font_small;
+}
+
+.xsmall {
+  @include font_xsmall;
+}
+
+.xxsmall {
+  @include font_xxsmall;
+}
+
+/**
+ * [parts] リンク
+ */
+a {
+}
+
+/**
+ * [parts] アイコン付きリンク
+ */
+a.icon:before {
+  content: "⇒ ";
+}
+
+/**
+ * [parts] ページ内リンク(下向き)
+ */
+a.down:before {
+  content: "↓ ";
+}
+
+/**
+ * [parts] ページ内リンク(上向き)
+ */
+a.up:before {
+  content: "↑ ";
+}
+
+/**
+ * [parts] 戻るリンク
+ */
+a.back:before {
+  content: "← ";
+}
+
+/**
+ * [parts] 付加リンクモジュール：別ウィンドウリンク
+ */
+a span.blank:after {
+  content: " □";
+}
+
+/**
+ * [parts] 付加リンクモジュール：ダウンロードリンク
+ */
+a span.download:after {
+  content: " [↓]";
+}
+
+/**
+ * [parts] 付加リンクモジュール：PDF
+ */
+a span.pdf:after {
+  content: " (PDF)";
+}
+
+/**
+ * [parts] リンクリスト .anchor_links
+ */
+.anchor_links {
+  padding: 1.5em;
+  border: 1px solid #999999;
+  .anchor_links-heading {
+    text-align: center;
+    font-weight: bold;
+    margin: 0 0 0.5em 0;
+  }
+  ul {
+    margin: 0;
+    padding: 0 0 0 1.5em;
+  }
+}
+
+/**
+ * [parts] 詳細リンクリスト .more_links
+ */
+.more_links {
+  margin-top: 0.5em;
+  margin-bottom: 2em;
+  border-top: dashed 1px #dddddd;
+  ul {
+    margin: 0.3em 0 0 0;
+    text-align: right;
+    li {
+      @include inline_block;
+      padding: 0 0 0 1em;
+    }
+  }
+}
+
+/**
+ * [parts] ページトップリンク .page_top
+ */
+.page_top {
+  text-align: right;
+}
+
+/**
+ * [parts] 強調
+ */
+strong {
+  color: #ff3333;
+  font-weight: bold;
+}
+
+/**
+ * [parts] 強勢(アクセント)
+ */
+em {
+  color: #ff6600;
+  font-weight: normal;
+  font-style: normal;
+}
+
+/**
+ * [parts] エラー表示
+ */
+.error {
+  color: #ff0000;
+}
+
+/**
+ * [parts] 注釈表示
+ */
+.notes {
+  color: #999999;
+}
+
+/**
+ * [parts] 画像置換
+ */
+.imgrep {
+  display: block;
+  position: relative;
+  top: auto;
+  left: auto;
+  padding: 0 0 0 0 !important;
+  border: 0 solid transparent !important;
+  overflow: hidden;
+  zoom: 100%;
+  .imgrep-panel {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-repeat: no-repeat;
+    background-color: transparent;
+    zoom: 100%;
+  }
+}
+
+/**
+ * [parts] 読み上げブラウザ対応のための隠しナビゲーション
+ */
+.aural {
+  display: block;
+  visibility: hidden;
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: hidden;
+  width: 0;
+  height: 0;
+  background-color: transparent;
+}
+
+/**
+ * [parts] カレントページ
+ */
+.current {
+  font-weight: bold;
+}
+
+/**
+ * [parts] 通常のリスト
+ */
+ul {
+  li {
+    list-style-type: disc;
+    text-indent: 0;
+  }
+}
+
+/**
+ * [parts] 注釈リスト
+ */
+ul.notes {
+  li.notes-li {
+    list-style-type: none;
+    text-indent: -1em;
+  }
+}
+
+/**
+ * [parts] リストマークがないリスト
+ */
+ul.nomark {
+  padding-left: 0;
+  li.nomark-li {
+    list-style-type: none;
+    padding-left: 0;
+  }
+}
+
+/**
+ * [parts] 水平並びリスト
+ */
+ul.horizontal {
+  padding-left: 0;
+  li.horizontal-li {
+    list-style-type: none;
+    padding-left: 0;
+    padding-right: 20;
+    display: inline;
+  }
+}
+
+/**
+ * 注釈定義リスト
+ */
+dl.notes {
+  padding: 0 0 0 0;
+  margin-left: 0;
+  margin-right: 0;
+  dt.notes-dt {
+    padding: 0 0 0 0;
+    margin: 0 0 0 0;
+    float: left;
+    clear: left;
+    border: 0 none;
+    font-weight: normal;
+  }
+  dd.notes-dd {
+    padding: 0 0 0 5px;
+    margin: 0 0 0 0;
+    float: none;
+    font-weight: normal;
+    display: block;
+    overflow: hidden;
+    zoom: 100%;
+  }
+}
+
+/**
+ * [parts] デフォルトテーブルスタイル
+ */
+table.def {
+  border: none;
+  border-collapse: collapse;
+  text-align: left;
+  th,
+  td {
+    border: 1px solid #999999;
+    background: #ffffff;
+    padding: 10px;
+  }
+  th {
+    background: #e7e7e7;
+  }
+  thead th,
+  tfoot th {
+    background: #d9d9d9;
+    text-align: center;
+  }
+  thead td,
+  tfoot td {
+    background: #eeeeee;
+  }
+}
+
+/**
+ * [parts] ソースコード
+ */
+.code {
+  margin: 1em 0;
+  pre {
+    margin: 0;
+  }
+  code,
+  textarea {
+    border: 1px solid #999999;
+    background: #f5f5f5;
+    padding: 1em;
+    font-size: small;
+    line-height: 1.5;
+  }
+  code {
+    display: block;
+    width: auto;
+    background: #e8e8e8;
+    border: 1px dashed #999999;
+    overflow: auto;
+  }
+  textarea {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    height: 16em;
+  }
+}
+
+/**
+ * [parts] 日付入りリスト .date_list
+ */
+.date_list {
+  table {
+    width: 100%;
+    border: none;
+    border-collapse: collapse;
+  }
+  table th,
+  table td {
+    border-top: 1px solid #999999;
+    border-bottom: 1px solid #999999;
+    padding: 10px;
+  }
+  table th {
+    background: #e7e7e7;
+  }
+  table thead th,
+  table tfoot th {
+    background: #d9d9d9;
+  }
+  table thead td,
+  table tfoot td {
+    background: #eeeeee;
+  }
+  table th {
+    white-space: nowrap;
+  }
+  table thead {
+    text-align: center;
+  }
+}
+
+/**
+ * [parts] フォーム要素
+ */
+table.form_elements {
+  border: none;
+  border-collapse: collapse;
+  text-align: left;
+  width: 100%;
+  thead {
+    display: none;
+  }
+  th,
+  td {
+    border: 1px solid #999999;
+    background: #ffffff;
+    padding: 10px;
+  }
+  th {
+    background: #e7e7e7;
+  }
+  thead th,
+  tfoot th {
+    background: #d9d9d9;
+    text-align: center;
+  }
+  thead td,
+  tfoot td {
+    background: #eeeeee;
+  }
+  tbody th {
+    width: 30%;
+  }
+  tbody td {
+    width: 70%;
+  }
+
+  .form_elements-notes {
+    @include font_small;
+    color: #999999;
+    margin: 0;
+    padding: 0;
+    li {
+      list-style-type: none;
+      margin: 0;
+    }
+  }
+
+  .form_elements-list {
+    margin: 0;
+    padding: 0;
+    li {
+      margin: 0;
+      padding: 0;
+      list-style-type: none;
+    }
+  }
+
+  .form_elements-list_horizontal {
+    margin: 0;
+    padding: 0;
+    li {
+      margin: 0;
+      padding: 0;
+      list-style-type: none;
+      display: inline;
+    }
+  }
+
+  .form_elements-error {
+    th {
+      background-color: #ffcccc;
+    }
+    td {
+      background-color: #fff2f2;
+    }
+  }
+
+  ul.form_elements-errors {
+    color: #ff0000;
+    margin: 0;
+    padding: 0;
+    li {
+      list-style-type: none;
+      margin: 0;
+    }
+  }
+}
+
+/**
+ * [parts] 必須項目
+ */
+.must {
+  color: #ff0000;
+  font-weight: bold;
+  display: inline;
+  white-space: nowrap;
+}

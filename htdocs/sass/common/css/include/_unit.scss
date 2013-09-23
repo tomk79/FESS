@@ -1,0 +1,246 @@
+@charset "UTF-8";
+
+@import "compass";
+@import "../mixin";
+
+/**
+ * [unit] ユニット
+ * モジュールの単位となる。前後にデフォルトマージン付加
+ */
+div.unit {
+  margin-top: 1em;
+  margin-bottom: 1.5em;
+  clear: both;
+}
+
+/**
+ * [static] .clearfix (and [unit] unit)
+ */
+.unit,
+.clearfix {
+  display: block;
+  float: none;
+  clear: both;
+}
+
+.unit:after,
+.clearfix:after {
+  content: " ";
+  display: block;
+  visibility: hidden;
+  height: 0.1px;
+  font-size: 0.1em;
+  line-height: 0;
+  clear: both;
+}
+
+.unit,
+.clearfix {
+  /* clearfix(for IE6,7) (IE8以降不要) */
+  zoom: 1;
+}
+
+/**
+ * [unit] カラムレイアウト
+ */
+.cols {
+  margin-left: -20px;
+  overflow: hidden;
+  .cols-col {
+    float: left;
+    margin: 0 0 0 0;
+    &.cols-3of4 {
+      width: 75%;
+    }
+    &.cols-1of2 {
+      width: 50%;
+    }
+    &.cols-2of3 {
+      width: 66.666%;
+    }
+    &.cols-1of3 {
+      width: 33.333%;
+    }
+    &.cols-1of4 {
+      width: 25%;
+    }
+  }
+  .cols-pad {
+    margin-left: 20px;
+  }
+  .cols-last {
+    float: right;
+    *margin-right: -10px;
+  }
+}
+
+/**
+ * [unit] フォーム送信ボタン
+ */
+.form_buttons {
+  position: relative;
+  text-align: center;
+  ul,
+  ul li {
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+  }
+  ul li.form_buttons-revise {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+  }
+}
+
+/**
+ * [unit] エラー通知ボックス
+ */
+.form_error_box {
+  border: 2px solid #ff9900;
+  padding: 0 20px;
+  background-color: #fff5f5;
+  color: #ff0000;
+  margin-left: 20px;
+  margin-right: 20px;
+  border-radius: 10px;
+  a {
+    color: #ff0000;
+  }
+}
+
+/**
+ * [unit] 注意喚起ユニット
+ */
+.attention {
+  border: 1px solid #999999;
+  padding: 0 20px;
+  margin-left: 20px;
+  margin-right: 20px;
+  border-radius: 10px;
+  background-color: #f9f9f9;
+  .attention-heading {
+    font-weight: bold;
+    margin: 1em 0;
+    font-size: 120%;
+  }
+}
+
+/**
+ * [unit] ページャー
+ */
+.pager {
+  ul {
+    text-align: center;
+    padding: 0;
+    margin: 0;
+    li {
+      display: inline;
+      list-style-type: none;
+      padding: 0 5px 0 5px;
+    }
+  }
+}
+
+/**
+ * [unit] サムネイルリスト
+ */
+.thumb_list {
+  ul {
+    text-align: left;
+    padding: 0;
+    margin: 0;
+    font-size: 0;
+    margin-left: -10px;
+    zoom: 1;
+  }
+  li {
+    @include inline_block;
+    list-style-type: none;
+    width: 25%;
+    *width: 24.9%;
+    margin: 0;
+    margin-bottom: 10px;
+    padding: 0;
+    vertical-align: top;
+    font-size: small;
+    .thumb_list-pad {
+      margin-left: 10px;
+    }
+    a {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+    img {
+      width: 100%;
+      height: auto;
+    }
+    &:nth-child(4n+1) {
+      clear: left;
+    }
+  }
+}
+
+/**
+ * [unit] 回り込み画像
+ */
+.float_media {
+  .float_media-r1of2 {
+    float: right;
+    width: 50%;
+    margin-left: 20px;
+    margin-bottom: 20px;
+  }
+  .float_media-l1of2 {
+    float: left;
+    width: 50%;
+    margin-right: 20px;
+    margin-bottom: 20px;
+  }
+  .float_media-r1of3 {
+    float: right;
+    width: 33%;
+    margin-left: 20px;
+    margin-bottom: 20px;
+  }
+  .float_media-l1of3 {
+    float: left;
+    width: 33%;
+    margin-right: 20px;
+    margin-bottom: 20px;
+  }
+  .float_media-r1of4 {
+    float: right;
+    width: 25%;
+    margin-left: 20px;
+    margin-bottom: 20px;
+  }
+  .float_media-l1of4 {
+    float: left;
+    width: 25%;
+    margin-right: 20px;
+    margin-bottom: 20px;
+  }
+  .float_media-l1of2 img,
+  .float_media-l1of3 img,
+  .float_media-l1of4 img,
+  .float_media-r1of2 img,
+  .float_media-r1of3 img,
+  .float_media-r1of4 img {
+    width: 100%;
+    height: auto;
+  }
+  .float_media-caption {
+    @include font_small;
+  }
+  .float_media-body {
+  }
+  .float_media-body_rect {
+    overflow: hidden;
+    *:first-child {
+      margin-top: 0;
+    }
+  }
+}
+
