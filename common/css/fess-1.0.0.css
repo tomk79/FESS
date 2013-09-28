@@ -1,6 +1,6 @@
 @charset "UTF-8";
 /**
- * FESS 1.1.0-nb
+ * FESS 1.0.0
  * @author Tomoya Koyanagi <tomk79@gmail.com>
  */
 
@@ -267,74 +267,20 @@ a span.pdf:after{
  * [parts] リンクリスト .anchor_links
  */
 .anchor_links{
-	padding:1.5em;
-	border:1px solid #999999;
-}
-.anchor_links .anchor_links-heading{
-	text-align:center;
-	font-weight:bold;
-	margin:0 0 0.5em 0;
-}
-.anchor_links ul{
-	margin:0;
-	padding:0 0 0 1.5em;
 }
 
 /**
  * [parts] 詳細リンクリスト .more_links
  */
 .more_links{
-	margin-top:0.5em;
-	margin-bottom:2em;
-	border-top:dashed 1px #dddddd;
-}
-.more_links ul{
-	margin:0.3em 0 0 0;
-	text-align:right;
-}
-.more_links ul li{
-	display:inline-block;
-	>zoom:1; >display:inline;
-	padding:0 0 0 1em;
 }
 
-/**
- * [parts] ページトップリンク .page_top
- */
-.page_top{
-	text-align:right;
-}
-
-
-/**
- * [parts] 強調
- */
-strong{
-	color:#ff3333;
-	font-weight:bold;
-}
-
-/**
- * [parts] 強勢(アクセント)
- */
-em{
-	color:#ff6600;
-	font-weight:normal;
-	font-style:normal;
-}
 
 /**
  * [parts] エラー表示
  */
 .error{
 	color:#ff0000;
-}
-
-/**
- * [parts] 注釈表示
- */
-.notes{
-	color:#999999;
 }
 
 /**
@@ -517,18 +463,6 @@ ul.nomark li.nomark-li{
 	padding-left:0;
 }
 
-/**
- * [parts] 水平並びリスト
- */
-ul.horizontal{
-	padding-left:0;
-}
-ul.horizontal li.horizontal-li{
-	list-style-type:none;
-	padding-left:0;
-	padding-right:20;
-	display:inline;
-}
 
 /**
  * 注釈定義リスト
@@ -665,7 +599,6 @@ table.form_elements thead{
 table.form_elements th,
 table.form_elements td {
 	border: 1px solid #999999;
-	background: #ffffff;
 	padding: 10px;
 }
 table.form_elements th {
@@ -710,6 +643,11 @@ table.form_elements .form_elements-list_horizontal li{
 	list-style-type:none;
 	display:inline;
 }
+table.form_elements .form_elements-must{
+	color:#ff0000;
+	font-weight:bold;
+	display:block;
+}
 table.form_elements .form_elements-error{
 }
 table.form_elements .form_elements-error th{
@@ -725,16 +663,6 @@ table.form_elements ul.form_elements-errors{
 table.form_elements ul.form_elements-errors li{
 	list-style-type:none;
 	margin:0;
-}
-
-/**
- * [parts] 必須項目
- */
-.must{
-	color:#ff0000;
-	font-weight:bold;
-	display:inline;
-	white-space:nowrap;
 }
 
 /**
