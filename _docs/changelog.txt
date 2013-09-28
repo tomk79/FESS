@@ -2,7 +2,7 @@
  * FESS (FrontEnd Standard Specification) 更新履歴
  */
 
-■FESS 1.1.0b2 (2013/**/**)
+■FESS 1.1.0 (2013/9/28)
 
 - 「強勢 em」と「強調 strong」をパーツモジュールに追加。
 - 「サブモジュールの定義指針」の項目を追加。
