@@ -904,6 +904,7 @@ table.def tfoot td {
   display: block;
   width: 100%;
   box-sizing: border-box;
+  -moz-box-sizing: border-box;
   height: 16em;
 }
 
