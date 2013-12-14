@@ -3,5 +3,5 @@
 "/docs/modules/",,,"ドキュメントモジュール",,,,,1,,,,,,,1
 "/docs/modules/units/",,,"ユニットモジュール",,,,"/docs/modules/",1,,,,,,,
 "/docs/modules/parts/",,,"パーツモジュール",,,,"/docs/modules/",1,,,,,,,
-"/docs/modules/statics/",,,"スタティックモジュール",,,,"/_docs/modules/",1,,,,,,,
+"/docs/modules/statics/",,,"スタティックモジュール",,,,"/docs/modules/",1,,,,,,,
 "/docs/modules/boxes/",,,"ボックスモジュール",,,,"/docs/modules/",1,,,,,,,

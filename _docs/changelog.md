@@ -1,7 +1,7 @@
 
 # FESS (FrontEnd Standard Specification) 更新履歴
 
-## FESS 1.1.1 (2013/\*\*/\*\*)
+## FESS 1.1.1 (2013/12/15)
 
 - ソースをSASS化した。
 - .code textarea がFirefoxでコンテンツエリアをはみ出す問題を修正。
