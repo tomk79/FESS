@@ -40,6 +40,7 @@ class px_pxcommands_config extends px_bases_pxcommand{
 		$src .= '<colgroup><col width="30%" /><col width="30%" /><col width="40%" /></colgroup>' . "\n";
 		$src .= $this->mk_config_unit('project.id','プロジェクトID');
 		$src .= $this->mk_config_unit('project.name','プロジェクト名');
+		$src .= $this->mk_config_unit('project.directory_index','省略するファイル名');
 		$src .= $this->mk_config_unit('project.path_top','トップページのパス');
 		$src .= $this->mk_config_unit('project.auth_type','認証形式');
 		$src .= $this->mk_config_unit('project.auth_name','認証ユーザーID');
@@ -60,13 +61,30 @@ class px_pxcommands_config extends px_bases_pxcommand{
 		$src .= $this->mk_config_unit('colors.main','メインカラー');
 		$src .= '</table>' . "\n";
 
-
 		$src .= '<h3>publish</h3>'."\n";
 		$src .= '<table class="def" style="width:100%;">' . "\n";
 		$src .= '<colgroup><col width="30%" /><col width="30%" /><col width="40%" /></colgroup>' . "\n";
 		$src .= $this->mk_config_unit('publish.path_publish_dir','パブリッシュ先ディレクトリパス','realpath');
 		$src .= $this->mk_config_unit('publish.paths_ignore','パブリッシュ対象外パスの一覧');
 		$src .= '</table>' . "\n";
+
+		$src .= '<h3>publish_extensions</h3>'."\n";
+		$extensions = array();
+		foreach($this->config_ary as $key=>$val){
+			if( preg_match('/^publish_extensions\.(.*)$/s', $key, $extension_matches) ){
+				array_push($extensions, array('extension'=>$key,'method'=>$extension_matches[1] ));
+			}
+		}
+		if( !count($extensions) ){
+			$src .= '<p>拡張子別のパブリッシュ設定はありません。</p>' . "\n";
+		}else{
+			$src .= '<table class="def" style="width:100%;">' . "\n";
+			$src .= '<colgroup><col width="30%" /><col width="30%" /><col width="40%" /></colgroup>' . "\n";
+			foreach($extensions as $extension){
+				$src .= $this->mk_config_unit($extension['extension'],'*.'.$extension['method'].' のパブリッシュ方法','string');
+			}
+			$src .= '</table>' . "\n";
+		}
 
 		$src .= '<h3>dbms</h3>'."\n";
 		$src .= '<table class="def" style="width:100%;">' . "\n";
@@ -108,7 +126,9 @@ class px_pxcommands_config extends px_bases_pxcommand{
 		$src .= $this->mk_config_unit('system.default_theme_id','デフォルトのテーマID');
 		$src .= $this->mk_config_unit('system.filesystem_encoding','ファイル名の文字エンコード');
 		$src .= $this->mk_config_unit('system.output_encoding','出力エンコード');
-		$src .= $this->mk_config_unit('system.output_eof_coding',' 出力改行コード("CR"|"LF"|"CRLF")');
+		$src .= $this->mk_config_unit('system.output_eof_coding','出力改行コード("CR"|"LF"|"CRLF")');
+		$src .= $this->mk_config_unit('system.file_default_permission','ファイル書き込み時のデフォルトのパーミッション');
+		$src .= $this->mk_config_unit('system.dir_default_permission','ディレクトリ書き込み時のデフォルトのパーミッション');
 		$src .= '</table>' . "\n";
 
 		$src .= '</div><!-- /.unit -->'."\n";
@@ -122,13 +142,7 @@ class px_pxcommands_config extends px_bases_pxcommand{
 
 		$src .= '<div class="unit">'."\n";
 		$src .= '<h2>プラグイン</h2>'."\n";
-		$tmp_path_plugins_base_dir = $this->px->get_conf('paths.px_dir').'plugins/';
-		$tmp_plugin_list = $this->px->dbh()->ls( $tmp_path_plugins_base_dir );
-		foreach( $tmp_plugin_list as $tmp_plugin_key=>$tmp_plugin_name ){
-			if(!is_dir($tmp_path_plugins_base_dir.$tmp_plugin_name)){
-				unset( $tmp_plugin_list[$tmp_plugin_key] );
-			}
-		}
+		$tmp_plugin_list = $this->px->get_plugin_list();
 		if( !count($tmp_plugin_list) ){
 			$src .= '<p>プラグインは組み込まれていません。</p>'."\n";
 		}else{
@@ -142,14 +156,16 @@ class px_pxcommands_config extends px_bases_pxcommand{
 			$src .= '				<th style="word-break:break-all;">initialize</th>'."\n";
 			$src .= '				<th style="word-break:break-all;">pxcommand</th>'."\n";
 			$src .= '				<th style="word-break:break-all;">outputfilter</th>'."\n";
+			$src .= '				<th style="word-break:break-all;">extensions</th>'."\n";
+			$src .= '				<th style="word-break:break-all;">funcs</th>'."\n";
 			$src .= '			</tr>'."\n";
 			$src .= '		</thead>'."\n";
 			$src .= '		<tbody>'."\n";
-			foreach( $tmp_plugin_list as $tmp_plugin_name ){
+			foreach( $tmp_plugin_list as $tmp_plugin_name=>$tmp_plugin_info ){
 				$src .= '			<tr>'."\n";
 				$src .= '				<th style="word-break:break-all;">'.t::h($tmp_plugin_name).'</th>'."\n";
 				$plugin_version = '????';
-				if( is_file( $tmp_path_plugins_base_dir.$tmp_plugin_name.'/register/info.php' ) ){
+				if( is_file( $tmp_plugin_info['path'].'register/info.php' ) ){
 					$class_name_info = $this->px->load_px_plugin_class('/'.$tmp_plugin_name.'/register/info.php');
 					if($class_name_info){
 						$obj_info = new $class_name_info();
@@ -159,16 +175,26 @@ class px_pxcommands_config extends px_bases_pxcommand{
 					}
 				}
 				$src .= '				<td class="center" style="word-break:break-all;">'.t::h($plugin_version).'</td>'."\n";
-				$src .= '				<td class="center">'.(is_file( $tmp_path_plugins_base_dir.$tmp_plugin_name.'/register/object.php' )?'○':'-').'</td>'."\n";
-				$src .= '				<td class="center">'.(is_file( $tmp_path_plugins_base_dir.$tmp_plugin_name.'/register/initialize.php' )?'○':'-').'</td>'."\n";
-				$src .= '				<td class="center">'.(is_file( $tmp_path_plugins_base_dir.$tmp_plugin_name.'/register/pxcommand.php' )?'○':'-').'</td>'."\n";
-				$src .= '				<td class="center">'.(is_file( $tmp_path_plugins_base_dir.$tmp_plugin_name.'/register/outputfilter.php' )?'○':'-').'</td>'."\n";
+				$src .= '				<td class="center">'.(is_file( $tmp_plugin_info['path'].'register/object.php' )?'○':'-').'</td>'."\n";
+				$src .= '				<td class="center">'.(is_file( $tmp_plugin_info['path'].'register/initialize.php' )?'○':'-').'</td>'."\n";
+				$src .= '				<td class="center">'.(is_file( $tmp_plugin_info['path'].'register/pxcommand.php' )?'○':'-').'</td>'."\n";
+				$src .= '				<td class="center">'.(is_file( $tmp_plugin_info['path'].'register/outputfilter.php' )?'○':'-').'</td>'."\n";
+				$exts = array();
+				$plugin_extension_list = $this->px->dbh()->ls( $tmp_plugin_info['path'].'/register/extensions/' );
+				if( !is_array($plugin_extension_list) ){ $plugin_extension_list = array(); }
+				foreach( $plugin_extension_list as $plugin_extension_basename ){
+					$plugin_extension_basename = $this->px->dbh()->trim_extension( $plugin_extension_basename );
+					$plugin_extension_class = $this->px->load_px_plugin_class( $tmp_plugin_name.'/register/extensions/'.$plugin_extension_basename.'.php' );
+					array_push( $exts, (strlen($plugin_extension_class)?$plugin_extension_basename:'<span class="error">'.$plugin_extension_basename.'(unavailable)</span>') );
+				}
+				$src .= '				<td class="center">'.(count($exts)?implode(', ', $exts):'-').'</td>'."\n";
+				$src .= '				<td class="center">'.(is_file( $tmp_plugin_info['path'].'register/funcs.php' )?'○':'-').'</td>'."\n";
 				$src .= '			</tr>'."\n";
 			}
 			$src .= '		</tbody>'."\n";
 			$src .= '	</table>'."\n";
 		}
-		unset($tmp_path_plugins_base_dir,$tmp_plugin_list,$tmp_plugin_name,$tmp_class_name);
+		unset($tmp_plugin_list,$tmp_plugin_name,$tmp_class_name);
 		$src .= '</div><!-- /.unit -->'."\n";
 
 		print $this->html_template($src);

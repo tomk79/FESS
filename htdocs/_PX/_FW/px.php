@@ -17,13 +17,14 @@ class px_px{
 	private $relatedlinks = array();
 	private $path_mainconf;
 	private $plugin_objects = array();
+	private $directory_index = array();
 
 	/**
 	 * PxFWのバージョン情報を取得する
 	 * @return string バージョン番号を示す文字列
 	 */
 	public function get_version(){
-		return '1.0.0b8-nb';
+		return '1.0.0b11-nb';
 
 		//  [バージョン番号のルール]
 		//    基本
@@ -100,7 +101,7 @@ class px_px{
 		if( strlen($this->req()->get_param('THEME')) ){
 			$this->theme()->set_theme_id( $this->req()->get_param('THEME') );
 		}
-		if( !is_dir( $_SERVER['DOCUMENT_ROOT'].$this->get_install_path().'_caches/_themes/'.$this->theme()->get_theme_id().'/' ) ){
+		if( !is_dir( $_SERVER['DOCUMENT_ROOT'].$this->get_install_path().'_caches/themes/'.$this->theme()->get_theme_id().'/' ) ){
 			// テーマリソースキャッシュの一次生成
 			$this->path_theme_files('/');
 		}
@@ -134,7 +135,7 @@ class px_px{
 		if( !strlen($localpath_current_content) ){
 			$localpath_current_content = $_SERVER['PATH_INFO'];
 			if( preg_match('/\/$/s',$localpath_current_content) ){
-				$localpath_current_content .= 'index.html';
+				$localpath_current_content .= $this->get_directory_index_primary();
 			}
 		}
 		$path_content = $this->dbh()->get_realpath( dirname($_SERVER['SCRIPT_FILENAME']).$localpath_current_content );
@@ -142,7 +143,7 @@ class px_px{
 		//------
 		//  拡張子違いのコンテンツを検索
 		//  リクエストはmod_rewriteの設定上、*.html でしかこない。
-		//  a.html のクエリでも、a.php があれば、a.php を採用できるようにしている。
+		//  a.html のクエリでも、a.html.php があれば、a.html.php を採用できるようにしている。
 		$list_extensions = $this->get_extensions_list();
 		foreach( $list_extensions as $row_extension ){
 			if( @is_file($path_content.'.'.$row_extension) ){
@@ -160,14 +161,24 @@ class px_px{
 				$extension = $page_info['extension'];
 			}
 			$class_name = $this->load_px_class( 'extensions/'.$extension.'.php' );
+			$plugins_list = $this->get_plugin_list();
+			foreach( $plugins_list as $tmp_plugin_name=>$tmp_plugin_info ){
+				// プラグイン内のextensionを検索
+				$tmp_class_name = $this->load_px_plugin_class( $tmp_plugin_name.'/register/extensions/'.$extension.'.php' );
+				if( strlen($tmp_class_name) ){
+					$class_name = $tmp_class_name;
+					break;
+				}
+			}
+			unset($tmp_class_name, $tmp_plugin_name, $tmp_plugin_info);
 			if( $class_name ){
 				$obj_extension = new $class_name( $this );
 				$obj_extension->execute( $path_content );
 			}else{
-				print $this->theme()->bind_contents( '<p>Unknow extension.</p>' );
+				print $this->theme()->output_filter($this->theme()->bind_contents( '<p>Unknow extension.</p>' ), 'html');
 			}
 		}else{
-			print $this->theme()->bind_contents( '<p>Content file is not found.</p>' );
+			print $this->theme()->output_filter($this->theme()->bind_contents( '<p>Content file is not found.</p>' ), 'html');
 		}
 		$final_html = @ob_get_clean();
 		if( count($this->relatedlinks) ){
@@ -258,7 +269,7 @@ class px_px{
 
 		$path_original = $this->get_install_path().$path_content;
 		$path_original = $this->dbh()->get_realpath($this->dbh()->trim_extension($path_original).'.files/'.$localpath_resource);
-		$rtn = $this->get_install_path().'/_caches/_contents'.$path_content;
+		$rtn = $this->get_install_path().'/_caches/contents'.$path_content;
 		$rtn = $this->dbh()->get_realpath($this->dbh()->trim_extension($rtn).'.files/'.$localpath_resource);
 		if( file_exists( $_SERVER['DOCUMENT_ROOT'].$path_original ) ){
 			if( is_dir($_SERVER['DOCUMENT_ROOT'].$path_original) ){
@@ -295,7 +306,7 @@ class px_px{
 		$localpath_theme_resource = preg_replace('/^\/+/', '', $localpath_theme_resource);
 
 		$realpath_original = $this->realpath_theme_files().'/'.$localpath_theme_resource;
-		$realpath_copyto = $_SERVER['DOCUMENT_ROOT'].$this->get_install_path().'_caches/_themes/'.$this->theme()->get_theme_id().'/'.$localpath_theme_resource;
+		$realpath_copyto = $_SERVER['DOCUMENT_ROOT'].$this->get_install_path().'_caches/themes/'.$this->theme()->get_theme_id().'/'.$localpath_theme_resource;
 		if( is_file($realpath_original) ){
 			// 対象がファイルだったら
 			if( strtolower($this->dbh()->get_extension($realpath_copyto)) == 'nopublish' ){
@@ -305,7 +316,7 @@ class px_px{
 				// キャッシュを作成・更新。
 				$this->dbh()->mkdir_all( dirname($realpath_copyto) );
 				$this->dbh()->copy( $realpath_original, $realpath_copyto );
-				$this->add_relatedlink( $this->get_install_path().'_caches/_themes/'.$this->theme()->get_theme_id().'/'.$localpath_theme_resource );
+				$this->add_relatedlink( $this->get_install_path().'_caches/themes/'.$this->theme()->get_theme_id().'/'.$localpath_theme_resource );
 			}
 		}elseif( is_dir($realpath_original) ){
 			// 対象がディレクトリだったら
@@ -315,12 +326,12 @@ class px_px{
 			}
 		}
 
-		$rtn = $this->get_install_path().'_caches/_themes/'.$this->theme()->get_theme_id().'/'.$localpath_theme_resource;
+		$rtn = $this->get_install_path().'_caches/themes/'.$this->theme()->get_theme_id().'/'.$localpath_theme_resource;
 		return $rtn;
 	}//path_theme_files()
 
 	/**
-	 * テーマリソースのサーバー内部パスを得る
+	 * テーマリソースのサーバー内部パスを得る。
 	 * @return string テーマリソースのサーバー内部パス
 	 */
 	public function realpath_theme_files( $localpath_theme_resource = null ){
@@ -331,6 +342,84 @@ class px_px{
 		}
 		return $rtn;
 	}//realpath_theme_files()
+
+	/**
+	 * カレントコンテンツのramdataディレクトリのサーバー内部パスを得る。
+	 */
+	public function realpath_ramdata_dir(){
+		$tmp_page_info = $this->site()->get_page_info($this->req()->get_request_file_path());
+		$path_content = $tmp_page_info['content'];
+
+		$lib_realpath = $this->get_conf('paths.px_dir').'_sys/ramdata/contents/'.$this->dbh()->trim_extension($path_content).'.files/';
+		$rtn = $this->dbh()->get_realpath( $lib_realpath ).'/';
+		if( !is_dir($rtn) ){
+			$this->dbh()->mkdir_all($rtn);
+		}
+		return $rtn;
+	}
+
+	/**
+	 * 選択されたテーマのramdataディレクトリのサーバー内部パスを得る。
+	 */
+	public function realpath_theme_ramdata_dir(){
+		$lib_realpath = $this->get_conf('paths.px_dir').'_sys/ramdata/themes/'.$this->theme()->get_theme_id().'/';
+		$rtn = $this->dbh()->get_realpath( $lib_realpath ).'/';
+		if( !is_dir($rtn) ){
+			$this->dbh()->mkdir_all($rtn);
+		}
+		return $rtn;
+	}
+
+	/**
+	 * プラグインのramdataディレクトリのサーバー内部パスを得る。
+	 */
+	public function realpath_plugin_ramdata_dir($plugin_name){
+		$lib_realpath = $this->get_conf('paths.px_dir').'_sys/ramdata/plugins/'.$plugin_name.'/';
+		$rtn = $this->dbh()->get_realpath( $lib_realpath ).'/';
+		if( !is_dir($rtn) ){
+			$this->dbh()->mkdir_all($rtn);
+		}
+		return $rtn;
+	}
+
+	/**
+	 * カレントコンテンツのプライベートキャッシュディレクトリのサーバー内部パスを得る。
+	 */
+	public function realpath_private_cache_dir(){
+		$tmp_page_info = $this->site()->get_page_info($this->req()->get_request_file_path());
+		$path_content = $tmp_page_info['content'];
+
+		$lib_realpath = $this->get_conf('paths.px_dir').'_sys/caches/contents/'.$this->dbh()->trim_extension($path_content).'.files/';
+		$rtn = $this->dbh()->get_realpath( $lib_realpath ).'/';
+		if( !is_dir($rtn) ){
+			$this->dbh()->mkdir_all($rtn);
+		}
+		return $rtn;
+	}
+
+	/**
+	 * 選択されたテーマのプライベートキャッシュディレクトリのサーバー内部パスを得る。
+	 */
+	public function realpath_theme_private_cache_dir(){
+		$lib_realpath = $this->get_conf('paths.px_dir').'_sys/caches/themes/'.$this->theme()->get_theme_id().'/';
+		$rtn = $this->dbh()->get_realpath( $lib_realpath ).'/';
+		if( !is_dir($rtn) ){
+			$this->dbh()->mkdir_all($rtn);
+		}
+		return $rtn;
+	}
+
+	/**
+	 * プラグインのプライベートキャッシュディレクトリのサーバー内部パスを得る。
+	 */
+	public function realpath_plugin_private_cache_dir($plugin_name){
+		$lib_realpath = $this->get_conf('paths.px_dir').'_sys/caches/plugins/'.$plugin_name.'/';
+		$rtn = $this->dbh()->get_realpath( $lib_realpath ).'/';
+		if( !is_dir($rtn) ){
+			$this->dbh()->mkdir_all($rtn);
+		}
+		return $rtn;
+	}
 
 	/**
 	 * 外部ソースをインクルードする(ServerSideInclude)
@@ -360,6 +449,17 @@ class px_px{
 	 * ssi() からコールされる。
 	 */
 	private function ssi_static_tag( $path ){
+		$plugins_list = $this->dbh()->ls( $this->get_conf('paths.px_dir').'plugins/' );
+		foreach( $plugins_list as $tmp_plugin_name ){
+			// プラグイン内のextensionを検索
+			$tmp_class_name = $this->load_px_plugin_class( $tmp_plugin_name.'/register/funcs.php' );
+			if( strlen($tmp_class_name) && method_exists( $tmp_class_name, 'ssi_static_tag' ) ){
+				$obj = new $tmp_class_name($this);
+				return $obj->ssi_static_tag( $path );
+				break;
+			}
+		}
+		unset($tmp_class_name, $tmp_plugin_name);
 		return '<!--#include virtual="'.htmlspecialchars( $path ).'" -->';
 	}//ssi_static_tag()
 
@@ -407,14 +507,30 @@ class px_px{
 	}//php_setup();
 
 	/**
-	 * コンフィグ値のロード。
+	 * コンフィグ値のロード
 	 */
 	private function load_conf( $path_mainconf ){
 		$conf = array();
+		if( !is_file($path_mainconf) ){ return $conf; }
+		if( !is_readable($path_mainconf) ){ return $conf; }
 		$tmp_conf = parse_ini_file( $path_mainconf , true );
 		foreach ($tmp_conf as $key1=>$row1) {
-			foreach ($row1 as $key2=>$val) {
-				$conf[$key1.'.'.$key2] = $val;
+			if( is_array($row1) ){
+				foreach ($row1 as $key2=>$val) {
+					if( $key2 == '_include' ){
+						$tmp_conf = $this->load_conf( $val );
+						$conf = array_merge($conf, $tmp_conf);
+					}else{
+						$conf[$key1.'.'.$key2] = $val;
+					}
+				}
+			}else{
+				if( $key1 == '_include' ){
+					$tmp_conf = $this->load_conf( $row1 );
+					$conf = array_merge($conf, $tmp_conf);
+				}else{
+					$conf[$key1] = $row1;
+				}
 			}
 		}
 		unset( $tmp_conf , $key1 , $row1 , $key2 , $val );
@@ -442,6 +558,46 @@ class px_px{
 	public function get_conf_all(){
 		return $this->conf;
 	}//get_conf_all()
+
+	/**
+	 * directory_index の一覧を得る
+	 */
+	public function get_directory_index(){
+		if( count($this->directory_index) ){
+			return $this->directory_index;
+		}
+		$tmp_di = preg_split( '/\,| |\;|\r\n|\r|\n/', $this->get_conf('project.directory_index') );
+		$this->directory_index = array();
+		foreach( $tmp_di as $file_name ){
+			$file_name = trim($file_name);
+			if( !strlen($file_name) ){ continue; }
+			array_push( $this->directory_index, $file_name );
+		}
+		if( !count( $this->directory_index ) ){
+			array_push( $this->directory_index, 'index.html' );
+		}
+		return $this->directory_index;
+	}//get_directory_index()
+
+	/**
+	 * directory_index のいずれかにマッチするためのpregパターン式を得る
+	 */
+	public function get_directory_index_preg_pattern( $delimiter = null ){
+		$directory_index = $this->get_directory_index();
+		foreach( $directory_index as $key=>$row ){
+			$directory_index[$key] = preg_quote($row, $delimiter);
+		}
+		$rtn = '(?:'.implode( '|', $directory_index ).')';
+		return $rtn;
+	}//get_directory_index_preg_pattern()
+
+	/**
+	 * 最も優先されるインデックスファイル名を得る
+	 */
+	public function get_directory_index_primary(){
+		$directory_index = $this->get_directory_index();
+		return $directory_index[0];
+	}//get_directory_index_primary()
 
 	/**
 	 * コアライブラリのインスタンス生成。
@@ -601,6 +757,29 @@ class px_px{
 	}//get_plugin_object()
 
 	/**
+	 * プラグインの一覧を得る
+	 */
+	public function get_plugin_list(){
+		static $rtn = null;
+		if( is_array($rtn) ){
+			return $rtn;
+		}
+		$rtn = array();
+		$tmp_path_plugins_base_dir = $this->get_conf('paths.px_dir').'plugins/';
+		$items = $this->dbh()->ls($tmp_path_plugins_base_dir);
+		sort($items, SORT_NATURAL|SORT_FLAG_CASE);//名前順に並び替え。検索の順番を保証するため。
+		foreach( $items as $base_name ){
+			if( !is_dir($tmp_path_plugins_base_dir.$base_name) ){
+				continue;
+			}
+			$rtn[$base_name] = array();
+			$rtn[$base_name]['name'] = $base_name;
+			$rtn[$base_name]['path'] = $tmp_path_plugins_base_dir.$base_name.'/';
+		}
+		return $rtn;
+	}//get_plugin_list()
+
+	/**
 	 * PxFWのテーマが定義するクラスファイルをロードする。
 	 */
 	public function load_pxtheme_class($path){
@@ -654,6 +833,7 @@ class px_px{
 	public function redirect( $redirect_to , $options = array() ){
 		while( @ob_end_clean() );
 
+		@header( 'Content-type: text/html; charset=UTF-8');
 		@header( 'Location: '.$redirect_to );
 		$fin = '';
 		$fin .= '<!doctype html>'."\n";
@@ -680,21 +860,13 @@ class px_px{
 	public function page_notfound(){
 		while( @ob_end_clean() );
 
-		header('Status: 404 NotFound.');
+		header('HTTP/1.1 404 NotFound');
+		$this->site()->set_page_info( $this->req()->get_request_file_path(), array('title'=>'404 Not found.') );
 		$fin = '';
-		$fin .= '<!doctype html>'."\n";
-		$fin .= '<html>'."\n";
-		$fin .= '<head>'."\n";
-		$fin .= '<meta charset="UTF-8" />'."\n";
-		$fin .= '<title>404 Not found</title>'."\n";
-		$fin .= '</head>'."\n";
-		$fin .= '<body>'."\n";
 		$fin .= '<p>'."\n";
 		$fin .= 'お探しのページは見つかりませんでした。<br />'."\n";
 		$fin .= '</p>'."\n";
-		$fin .= '</body>'."\n";
-		$fin .= '</html>'."\n";
-		print $fin;
+		print $this->theme()->output_filter($this->theme()->bind_contents( $fin ), 'html');
 		exit();
 	}//page_notfound()
 
@@ -704,12 +876,12 @@ class px_px{
 	public function page_forbidden(){
 		while( @ob_end_clean() );
 
-		header('Status: 403 Forbidden.');
+		header('HTTP/1.1 403 Forbidden');
 		$fin = '';
 		$fin .= '<p>'."\n";
 		$fin .= 'このページの閲覧権がありません。<br />'."\n";
 		$fin .= '</p>'."\n";
-		print $this->theme()->bind_contents( $fin );
+		print $this->theme()->output_filter($this->theme()->bind_contents( $fin ), 'html');
 		exit();
 	}//page_forbidden()
 
@@ -720,17 +892,24 @@ class px_px{
 		while( @ob_end_clean() );
 
 		$fin = '';
+		if( strlen($this->req()->get_param('ID')) || strlen($this->req()->get_param('PW')) ){
+			$fin .= '<div class="unit form_error_box">'."\n";
+			$fin .= '	<p>ユーザーIDまたはパスワードが違います。</p>'."\n";
+			$fin .= '</div><!-- /.form_error_box -->'."\n";
+		}
 		$fin .= '<p>'."\n";
 		$fin .= '	ログインしてください。<br />'."\n";
 		$fin .= '</p>'."\n";
 		$fin .= '<form action="'.t::h($this->theme()->href( $this->req()->get_request_file_path() )).'" method="post">'."\n";
-		$fin .= '	<p><input type="text" name="ID" value="'.t::h($this->req()->get_param('ID')).'" /><br /></p>'."\n";
-		$fin .= '	<p><input type="password" name="PW" value="" /><br /></p>'."\n";
-		$fin .= '	<p><input type="submit" value="送信" /></p>'."\n";
+		$fin .= '	<table class="def">'."\n";
+		$fin .= '		<tr><th>ユーザーID</th><td><input type="text" name="ID" value="'.t::h($this->req()->get_param('ID')).'" /></td></tr>'."\n";
+		$fin .= '		<tr><th>パスワード</th><td><input type="password" name="PW" value="" /></td></tr>'."\n";
+		$fin .= '	</table>'."\n";
+		$fin .= '	<p><input type="submit" value="ログインする" /></p>'."\n";
 		$fin .= '</form>'."\n";
-		print $this->theme()->bind_contents( $fin );
+		print $this->theme()->output_filter($this->theme()->bind_contents( $fin ), 'html');
 		exit();
-	}//redirect()
+	}//page_login()
 
 	/**
 	 * ダウンロードファイルを出力する
@@ -755,7 +934,7 @@ class px_px{
 		if( strlen( $option['content-type'] ) ){
 			$contenttype = $option['content-type'];
 		}else{
-			$contenttype = 'x-download/download';
+			$contenttype = 'application/octet-stream';
 		}
 		if( strlen( $contenttype ) ){
 			if( strlen( $option['charset'] ) ){
@@ -815,7 +994,7 @@ class px_px{
 		if( strlen( $option['content-type'] ) ){
 			$contenttype = $option['content-type'];
 		}else{
-			$contenttype = 'x-download/download';
+			$contenttype = 'application/octet-stream';
 		}
 		if( strlen( $contenttype ) ){
 			if( strlen( $option['charset'] ) ){

@@ -8,8 +8,9 @@ $this->load_px_class('/bases/pxcommand.php');
 class px_pxcommands_publish extends px_bases_pxcommand{
 
 	private $path_docroot_dir;
-	private $path_publish_dir;	//パブリッシュ先ディレクトリ
-	private $path_tmppublish_dir;//一時書き出しディレクトリ(固定)
+	private $path_publish_dir; //パブリッシュ先ディレクトリ
+	private $path_tmppublish_dir; //一時書き出しディレクトリ(固定)
+	private $path_lockfile; //ロックファイル
 	private $paths_ignore = array();
 
 	private $queue_items = array();//←パブリッシュ対象の一覧
@@ -17,7 +18,9 @@ class px_pxcommands_publish extends px_bases_pxcommand{
 	private $path_target = null;//←パブリッシュ対象パス
 	private $internal_errors = array();//←その他の内部エラー
 	private $publish_type_extension_map = array(//←拡張子とパブリッシュタイプのマッピング配列
-		//  'http'|'include_text'|'copy'
+		//  'http'|'include_text'|'copy'|'nopublish'
+		// ※この設定は、mainconf.ini の publish_extensions の項目で上書きできるようになりました。
+		// 　ここに実装されている値はデフォルトです。変更する場合は、mainconf.ini を編集してください。
 		'html' =>'http' ,
 		'css'  =>'http' ,
 		'js'   =>'http' ,
@@ -36,7 +39,7 @@ class px_pxcommands_publish extends px_bases_pxcommand{
 
 		$this->path_target = $this->px->dbh()->get_realpath( $this->px->get_install_path() ).$_SERVER['PATH_INFO'];
 		$this->path_target = preg_replace('/^\/+/s','/',$this->path_target);
-		$this->path_target = preg_replace('/\/index\.html$/s','/',$this->path_target);
+		// $this->path_target = preg_replace('/\/'.$this->px->get_directory_index_preg_pattern().'$/s','/',$this->path_target);
 
 		$command = $this->get_command();
 		$this->setup();
@@ -81,7 +84,32 @@ function contEditPublishTargetPathApply(formElm){
 </script>
 <?php
 		$src .= ob_get_clean();
-		if( $this->is_locked() ){
+		if(!is_dir($this->path_docroot_dir)){
+			$src .= '<div class="unit">'."\n";
+			$src .= '	<p class="error">ドキュメントルートディレクトリが存在しません。</p>'."\n";
+			$src .= '	<ul><li style="word-break:break-all;">'.t::h( $this->path_docroot_dir ).'</li></ul>'."\n";
+			$src .= '</div><!-- /.unit -->'."\n";
+		}elseif(!is_dir($this->path_tmppublish_dir)){
+			$src .= '<div class="unit">'."\n";
+			$src .= '	<p class="error">パブリッシュ先一時ディレクトリが存在しません。</p>'."\n";
+			$src .= '	<ul><li style="word-break:break-all;">'.t::h( $this->path_tmppublish_dir ).'</li></ul>'."\n";
+			$src .= '</div><!-- /.unit -->'."\n";
+		}elseif(!is_writable($this->path_tmppublish_dir)){
+			$src .= '<div class="unit">'."\n";
+			$src .= '	<p class="error">パブリッシュ先一時ディレクトリに書き込み許可がありません。</p>'."\n";
+			$src .= '	<ul><li style="word-break:break-all;">'.t::h( $this->path_tmppublish_dir ).'</li></ul>'."\n";
+			$src .= '</div><!-- /.unit -->'."\n";
+		}elseif( strlen($this->px->get_conf('publish.path_publish_dir')) && !is_dir($this->px->get_conf('publish.path_publish_dir')) ){
+			$src .= '<div class="unit">'."\n";
+			$src .= '	<p class="error">パブリッシュ先ディレクトリが存在しません。</p>'."\n";
+			$src .= '	<ul><li style="word-break:break-all;">'.t::h( $this->px->dbh()->get_realpath( $this->px->get_conf('publish.path_publish_dir') ).'/' ).'</li></ul>'."\n";
+			$src .= '</div><!-- /.unit -->'."\n";
+		}elseif( strlen($this->px->get_conf('publish.path_publish_dir')) && !is_writable($this->px->get_conf('publish.path_publish_dir')) ){
+			$src .= '<div class="unit">'."\n";
+			$src .= '	<p class="error">パブリッシュ先ディレクトリに書き込み許可がありません。</p>'."\n";
+			$src .= '	<ul><li style="word-break:break-all;">'.t::h( $this->px->dbh()->get_realpath( $this->px->get_conf('publish.path_publish_dir') ).'/' ).'</li></ul>'."\n";
+			$src .= '</div><!-- /.unit -->'."\n";
+		}elseif( $this->is_locked() ){
 			$src .= '<div class="unit">'."\n";
 			$src .= '	<p>パブリッシュは<strong>ロックされています</strong>。</p>'."\n";
 			$src .= '	<p>'."\n";
@@ -91,11 +119,15 @@ function contEditPublishTargetPathApply(formElm){
 			$src .= '	<p>'."\n";
 			$src .= '		ロックファイルの内容を下記に示します。<br />'."\n";
 			$src .= '	</p>'."\n";
-			$src .= '	<blockquote><pre>'.t::h( $this->px->dbh()->file_get_contents( $this->path_tmppublish_dir.'applock.txt' ) ).'</pre></blockquote>'."\n";
+			$src .= '	<blockquote><pre>'.t::h( $this->px->dbh()->file_get_contents( $this->path_lockfile ) ).'</pre></blockquote>'."\n";
+			$src .= '	<p>'."\n";
+			$src .= '		ロックファイルは下記の時刻に更新されました。<br />'."\n";
+			$src .= '	</p>'."\n";
+			$src .= '	<blockquote><pre>'.t::h( date( 'Y-m-d H:i:s', filemtime( $this->path_lockfile ) ) ).'</pre></blockquote>'."\n";
 			$src .= '	<p>'."\n";
 			$src .= '		ロックファイルは、次のパスに存在します。<br />'."\n";
 			$src .= '	</p>'."\n";
-			$src .= '	<blockquote><pre>'.t::h( realpath( $this->path_tmppublish_dir.'applock.txt' ) ).'</pre></blockquote>'."\n";
+			$src .= '	<blockquote><pre>'.t::h( realpath( $this->path_lockfile ) ).'</pre></blockquote>'."\n";
 			$src .= '</div><!-- /.unit -->'."\n";
 		}else{
 			$src .= '<div class="unit">'."\n";
@@ -155,9 +187,15 @@ function contEditPublishTargetPathApply(formElm){
 			$src .= '   <p>パブリッシュは、次のコマンドから実行することもできます。</p>'."\n";
 			$src .= '   <dl>'."\n";
 			$src .= '		<dt>"curl" コマンドが使える場合</dt>'."\n";
-			$src .= '       	<dd>$ curl '.t::h( t::data2text('http://'.$_SERVER['HTTP_HOST'].$this->path_target.'?PX=publish.run') ).'</dd>'."\n";
+			$auth_curl = '';
+			$auth_wget = '';
+			if( strlen( $this->px->get_conf('project.auth_name') ) || strlen( $this->px->get_conf('project.auth_password') ) ){
+				$auth_curl = '--user '.t::data2text( $this->px->get_conf('project.auth_name').':'.$this->px->get_conf('project.auth_password') ).' ';
+				$auth_wget = '--http-user='.t::data2text( $this->px->get_conf('project.auth_name') ).' --http-passwd='.t::data2text( $this->px->get_conf('project.auth_password') ).' ';
+			}
+			$src .= '       	<dd>$ curl '.t::h($auth_curl).''.t::h( t::data2text('http://'.$_SERVER['HTTP_HOST'].$this->path_target.'?PX=publish.run') ).'</dd>'."\n";
 			$src .= '		<dt>"wget" コマンドが使える場合</dt>'."\n";
-			$src .= '       	<dd>$ wget '.t::h( t::data2text('http://'.$_SERVER['HTTP_HOST'].$this->path_target.'?PX=publish.run') ).'</dd>'."\n";
+			$src .= '       	<dd>$ wget '.t::h($auth_wget).''.t::h( t::data2text('http://'.$_SERVER['HTTP_HOST'].$this->path_target.'?PX=publish.run') ).'</dd>'."\n";
 			$src .= '   </dl>'."\n";
 			$src .= '</div><!-- /.topic_box -->'."\n";
 			$src .= ''."\n";
@@ -181,13 +219,19 @@ function contEditPublishTargetPathApply(formElm){
 		print '------'."\n";
 		print 'PX command "'.$command[0].'" executed.'."\n";
 		if( $this->px->req()->is_cmd() ){
+			$auth_curl = '';
+			$auth_wget = '';
+			if( strlen( $this->px->get_conf('project.auth_name') ) || strlen( $this->px->get_conf('project.auth_password') ) ){
+				$auth_curl = '--user '.t::data2text( $this->px->get_conf('project.auth_name').':'.$this->px->get_conf('project.auth_password') ).' ';
+				$auth_wget = '--http-user='.t::data2text( $this->px->get_conf('project.auth_name') ).' --http-passwd='.t::data2text( $this->px->get_conf('project.auth_password') ).' ';
+			}
 			print 'Sorry, CUI is not supported.'."\n";
 			print 'Please try below...'."\n";
 			print '    - If you can use "curl" command.'."\n";
 			print '      (If your system is Mac OSX, maybe you can use this.)'."\n";
-			print '        $ curl http://{$yourdomain}'.$this->path_target.'?PX=publish.run'."\n";
+			print '        $ curl '.$auth_curl.'http://{$yourdomain}'.$this->path_target.'?PX=publish.run'."\n";
 			print '    - If you can use "wget" command.'."\n";
-			print '        $ wget http://{$yourdomain}'.$this->path_target.'?PX=publish.run'."\n";
+			print '        $ wget '.$auth_wget.'http://{$yourdomain}'.$this->path_target.'?PX=publish.run'."\n";
 			print ''."\n";
 			print ''."\n";
 			print 'exit.'."\n";
@@ -198,6 +242,7 @@ function contEditPublishTargetPathApply(formElm){
 		print '------'."\n";
 		print 'path_docroot_dir => '.$this->path_docroot_dir."\n";
 		print 'path_tmppublish_dir => '.$this->path_tmppublish_dir."\n";
+		print 'path_lockfile => '.$this->path_lockfile."\n";
 		print 'path_publish_dir => '.$this->path_publish_dir."\n";
 		print 'path_target => '.$this->path_target.'*'."\n";
 		print 'paths_ignore => '."\n";
@@ -208,13 +253,31 @@ function contEditPublishTargetPathApply(formElm){
 
 		if(!is_dir($this->path_docroot_dir)){
 			print '------'."\n";
-			print 'path_docroot_dir is NOT exists.'."\n";
+			print '[ERROR] path_docroot_dir is NOT exists.'."\n";
 			print 'exit.'."\n";
 			exit;
 		}
 		if(!is_dir($this->path_tmppublish_dir)){
 			print '------'."\n";
-			print 'path_tmppublish_dir is NOT exists.'."\n";
+			print '[ERROR] path_tmppublish_dir is NOT exists.'."\n";
+			print 'exit.'."\n";
+			exit;
+		}
+		if(!is_writable($this->path_tmppublish_dir)){
+			print '------'."\n";
+			print '[ERROR] path_tmppublish_dir is NOT writable.'."\n";
+			print 'exit.'."\n";
+			exit;
+		}
+		if( strlen($this->px->get_conf('publish.path_publish_dir')) && !is_dir($this->px->get_conf('publish.path_publish_dir')) ){
+			print '------'."\n";
+			print '[ERROR] path_publish_dir is NOT exists.'."\n";
+			print 'exit.'."\n";
+			exit;
+		}
+		if( strlen($this->px->get_conf('publish.path_publish_dir')) && !is_writable($this->px->get_conf('publish.path_publish_dir')) ){
+			print '------'."\n";
+			print '[ERROR] path_publish_dir is NOT writable.'."\n";
 			print 'exit.'."\n";
 			exit;
 		}
@@ -223,6 +286,7 @@ function contEditPublishTargetPathApply(formElm){
 		if( !$this->lock() ){//ロック
 			print '------'."\n";
 			print 'publish is now locked.'."\n";
+			print '  (lockfile updated: '.@date('Y-m-d H:i:s', filemtime($this->path_lockfile)).')'."\n";
 			print 'Try again later...'."\n";
 			print 'exit.'."\n";
 			exit;
@@ -239,7 +303,7 @@ function contEditPublishTargetPathApply(formElm){
 
 		print '------'."\n";
 		print '* start scaning directory.'."\n";
-		set_time_limit(60*60);
+		set_time_limit(60*60*3);
 		$this->scan_dirs( '/' );
 		set_time_limit(300);
 		flush();
@@ -265,7 +329,7 @@ function contEditPublishTargetPathApply(formElm){
 		foreach( $this->plugins_list as $tmp_key=>$tmp_plugin_name ){
 			$tmp_class_name = $this->px->load_px_plugin_class($tmp_plugin_name.'/register/publish.php');
 			$plugin_object = new $tmp_class_name($this->px, $this);
-			$plugin_object->before_execute($this->px->dbh()->get_realpath($this->path_tmppublish_dir.'/htdocs/'));
+			$plugin_object->before_execute($this->px->dbh()->get_realpath($this->path_tmppublish_dir.'/htdocs/').'/');
 		}
 
 		print '------'."\n";
@@ -276,10 +340,11 @@ function contEditPublishTargetPathApply(formElm){
 			}
 			$path = array_pop( $this->queue_items );
 			flush();
-			set_time_limit(60*60);
+			set_time_limit(60*60*3);
 			$this->publish_file( $path );
 			set_time_limit(30);
 			flush();
+			$this->touch_lockfile();
 		}
 		print 'done.'."\n";
 		print ''."\n";
@@ -289,26 +354,32 @@ function contEditPublishTargetPathApply(formElm){
 		foreach( $this->plugins_list as $tmp_key=>$tmp_plugin_name ){
 			$tmp_class_name = $this->px->load_px_plugin_class($tmp_plugin_name.'/register/publish.php');
 			$plugin_object = new $tmp_class_name($this->px, $this);
-			$plugin_object->after_execute($this->px->dbh()->get_realpath($this->path_tmppublish_dir.'/htdocs/'));
+			$plugin_object->after_execute($this->px->dbh()->get_realpath($this->path_tmppublish_dir.'/htdocs/').'/');
 		}
 
 		if( strlen( $this->path_publish_dir ) && is_dir( $this->path_publish_dir ) ){
+			set_time_limit(60*60*24*4);
 			print '------'."\n";
-			print 'copying files to publish.path_publish_dir.,,'."\n";
-			$copy_from = $this->px->dbh()->get_realpath( $this->path_tmppublish_dir.'htdocs/'.'.'.$this->px->get_install_path().'.'.$this->path_target ).'/';
-			$copy_to   = $this->px->dbh()->get_realpath( $this->path_publish_dir.'.'.$this->px->get_install_path().'.'.$this->path_target ).'/';
+			print 'copying files to publish.path_publish_dir...'."\n";
+			$copy_from = $this->px->dbh()->get_realpath( $this->path_tmppublish_dir.'htdocs/'.'.'.$this->path_target );
+			$copy_to   = $this->px->dbh()->get_realpath( $this->path_publish_dir.'.'.$this->path_target );
 			print 'copy from: '.$copy_from ."\n";
 			print 'copy to:   '.$copy_to   ."\n";
-			$this->px->dbh()->mkdir_all( $copy_to );
+			if(is_dir($copy_from)){
+				$this->px->dbh()->mkdir_all( $copy_to );
+			}elseif(is_file($copy_from)){
+				$this->px->dbh()->mkdir_all( dirname($copy_to) );
+			}
 			$this->px->dbh()->sync_dir( $copy_from , $copy_to );
 			print ''."\n";
+			set_time_limit(30);
 
 			// プラグインによる加工処理
 			//   パブリッシュの後処理 after_copying() を実施
 			foreach( $this->plugins_list as $tmp_key=>$tmp_plugin_name ){
 				$tmp_class_name = $this->px->load_px_plugin_class($tmp_plugin_name.'/register/publish.php');
 				$plugin_object = new $tmp_class_name($this->px, $this);
-				$plugin_object->after_copying($this->px->dbh()->get_realpath( $this->path_publish_dir ));
+				$plugin_object->after_copying($this->px->dbh()->get_realpath( $this->path_publish_dir ).'/');
 			}
 		}
 
@@ -354,11 +425,13 @@ function contEditPublishTargetPathApply(formElm){
 		if( !is_dir($this->px->get_conf('paths.px_dir').'_sys/publish/') ){
 			$this->px->dbh()->mkdir($this->px->get_conf('paths.px_dir').'_sys/publish/');
 		}
-		$this->path_tmppublish_dir = t::realpath($this->px->get_conf('paths.px_dir').'_sys/publish/').'/';
 
-		array_push( $this->paths_ignore , t::realpath($this->px->get_conf('paths.px_dir')) );
-		array_push( $this->paths_ignore , t::realpath($this->path_docroot_dir.'/.htaccess') );
-		array_push( $this->paths_ignore , t::realpath($this->path_docroot_dir.'/_px_execute.php') );
+		$this->path_tmppublish_dir = $this->px->dbh()->get_realpath($this->px->get_conf('paths.px_dir').'_sys/publish/').'/';
+		$this->path_lockfile = $this->path_tmppublish_dir.'applock.txt';
+
+		array_push( $this->paths_ignore , $this->px->dbh()->get_realpath($this->px->get_conf('paths.px_dir')) );
+		array_push( $this->paths_ignore , $this->px->dbh()->get_realpath($this->path_docroot_dir.'/.htaccess') );
+		array_push( $this->paths_ignore , $this->px->dbh()->get_realpath($this->path_docroot_dir.'/_px_execute.php') );
 		array_push( $this->paths_ignore , '*/.DS_Store' );
 		array_push( $this->paths_ignore , '*/Thumbs.db' );
 		array_push( $this->paths_ignore , '*.nopublish/*' );
@@ -382,6 +455,14 @@ function contEditPublishTargetPathApply(formElm){
 			}
 
 			array_push( $this->paths_ignore , $row_realpath );
+		}
+
+		// 拡張子別の処理方法の設定をコンフィグから読み込む
+		$config_ary = $this->px->get_conf_all();
+		foreach( $config_ary as $config_key=>$config_row ){
+			if( preg_match('/^publish_extensions\.(.*)$/s', $config_key, $command_matches) ){
+				$this->publish_type_extension_map[$command_matches[1]] = $config_row;
+			}
 		}
 
 		// プラグインによる加工処理(publish API を利用するプラグイン一覧を精査)
@@ -472,12 +553,12 @@ function contEditPublishTargetPathApply(formElm){
 		}
 
 		$path = preg_replace('/(?:\?|\#).*$/s','',$path);
-		$path = preg_replace('/\/$/s','/index.html',$path);
+		$path = preg_replace('/\/$/s','/'.$this->px->get_directory_index_primary(), $path);
 
 		if( $this->done_items[$path] ){ return true; }
 		array_push( $this->queue_items , $path );
 		$this->done_items[$path] = true;
-		print '[add_queue] '.$path."\n";
+		print '[add_queue] '.$path.' - remaining: '.count($this->queue_items).''."\n";
 		return true;
 	}
 
@@ -493,7 +574,11 @@ function contEditPublishTargetPathApply(formElm){
 		$logtext .= '	'.$ary_logtexts['message'];
 		$logtext .= '	'.($ary_logtexts['result']===true?'success':($ary_logtexts['result']===false?'FAILED':$ary_logtexts['result']));
 		$logtext .= '	'.$ary_logtexts['path'];
-		return @error_log( $logtext."\r\n", 3, $this->path_tmppublish_dir.'publish_log.txt' );
+
+		$path = $this->path_tmppublish_dir.'publish_log.txt';
+		$rtn = @error_log( $logtext."\r\n", 3, $path );
+		$this->px->dbh()->chmod($path);
+		return $rtn;
 	}
 
 	/**
@@ -507,7 +592,11 @@ function contEditPublishTargetPathApply(formElm){
 		$logtext .= date('Y-m-d H:i:s').'	';
 		$logtext .= $ary_logtexts['error'].'	';
 		$logtext .= $ary_logtexts['path'];
-		return @error_log( $logtext."\r\n", 3, $this->path_tmppublish_dir.'publish_error_log.txt' );
+
+		$path = $this->path_tmppublish_dir.'publish_error_log.txt';
+		$rtn = @error_log( $logtext."\r\n", 3, $path );
+		$this->px->dbh()->chmod($path);
+		return $rtn;
 	}
 
 	/**
@@ -590,7 +679,7 @@ function contEditPublishTargetPathApply(formElm){
 
 
 				$result = $httpaccess->get_status_cd();
-				print ' [HTTP Status: '.$result.']'."\n";
+				print ' [HTTP Status: '.$result.']'.' - remaining: '.count($this->queue_items).''."\n";
 
 				$relatedlink = $httpaccess->get_response(strtolower('X-PXFW-RELATEDLINK'));
 				if( strlen($relatedlink) ){
@@ -629,7 +718,7 @@ function contEditPublishTargetPathApply(formElm){
 				}
 				$this->px->dbh()->mkdir_all( dirname($this->path_tmppublish_dir.'/htdocs/'.$path) );
 				$result = $this->px->dbh()->file_overwrite( $this->path_tmppublish_dir.'/htdocs/'.$path , $tmp_src );
-				print ''."\n";
+				print ''.' - remaining: '.count($this->queue_items).''."\n";
 
 				$this->publish_log( array(
 					'result'=>($result?true:false),
@@ -646,7 +735,7 @@ function contEditPublishTargetPathApply(formElm){
 			default:
 				$this->px->dbh()->mkdir_all( dirname($this->path_tmppublish_dir.'/htdocs/'.$path) );
 				$result = $this->px->dbh()->copy( $_SERVER['DOCUMENT_ROOT'].$path , $this->path_tmppublish_dir.'/htdocs/'.$path );
-				print ''."\n";
+				print ''.' - remaining: '.count($this->queue_items).''."\n";
 
 				$this->publish_log( array(
 					'result'=>($result?true:false),
@@ -723,7 +812,7 @@ function contEditPublishTargetPathApply(formElm){
 	 * パブリッシュをロックする
 	 */
 	private function lock(){
-		$lockfilepath = $this->path_tmppublish_dir.'applock.txt';
+		$lockfilepath = $this->path_lockfile;
 		$timeout_limit = 10;
 
 		if( !@is_dir( dirname( $lockfilepath ) ) ){
@@ -760,14 +849,11 @@ function contEditPublishTargetPathApply(formElm){
 	 * パブリッシュがロックされているか確認する
 	 */
 	private function is_locked(){
-		$lockfilepath = $this->path_tmppublish_dir.'applock.txt';
+		$lockfilepath = $this->path_lockfile;
 		$lockfile_expire = 60*30;//有効期限は30分
 
 		if( is_file($lockfilepath) ){
-			$file_bin = $this->px->dbh()->file_get_contents( $lockfilepath );
-			$file_bin_ary = explode( "\r\n" , $file_bin );
-			$file_time = $this->px->dbh()->datetime2int( $file_bin_ary[1] );
-			if( ( time() - $file_time ) > $lockfile_expire ){
+			if( ( time() - filemtime($lockfilepath) ) > $lockfile_expire ){
 				#	有効期限を過ぎていたら、ロックは成立する。
 				return false;
 			}
@@ -780,14 +866,28 @@ function contEditPublishTargetPathApply(formElm){
 	 * パブリッシュロックを解除する
 	 */
 	private function unlock(){
-		$lockfilepath = $this->path_tmppublish_dir.'applock.txt';
+		$lockfilepath = $this->path_lockfile;
 
 		#	PHPのFileStatusCacheをクリア
 		clearstatcache();
 
-		unlink( $lockfilepath );
-		return	$RTN;
+		return unlink( $lockfilepath );
 	}//unlock()
+
+	/**
+	 * パブリッシュロックファイルの更新日を更新する
+	 */
+	private function touch_lockfile(){
+		$lockfilepath = $this->path_lockfile;
+
+		#	PHPのFileStatusCacheをクリア
+		clearstatcache();
+		if( !is_file( $lockfilepath ) ){
+			return false;
+		}
+
+		return touch( $lockfilepath );
+	}//touch_lockfile()
 
 	/**
 	 * その他の内部エラーを記録

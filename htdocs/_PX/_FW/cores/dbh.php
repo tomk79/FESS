@@ -49,6 +49,13 @@ class px_cores_dbh{
 	 */
 	public function __construct( $px ){
 		$this->px = $px;
+
+		if( strlen( $this->px->get_conf('system.file_default_permission') ) ){
+			$this->default_permission['file'] = octdec($this->px->get_conf('system.file_default_permission'));
+		}
+		if( strlen( $this->px->get_conf('system.dir_default_permission') ) ){
+			$this->default_permission['dir'] = octdec($this->px->get_conf('system.dir_default_permission'));
+		}
 	}
 
 	#******************************************************************************************************************
@@ -1827,6 +1834,7 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 			//PxFW 0.6.4 追加
 			$RTN = @t::convert_encoding( $RTN , mb_internal_encoding() );
 		}
+		usort($RTN, "strnatcmp");
 		return	$RTN;
 	}//ls()
 

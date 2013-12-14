@@ -122,6 +122,8 @@ class px_cores_theme{
 		@include( $path_template_file );
 		$src = ob_get_clean();
 
+		$src = preg_replace( '/^'.preg_quote(base64_decode('77u/'),'/').'/', '', $src );//	BOMを削除する
+
 		return $src;
 	}//bind_contents();
 
@@ -174,8 +176,8 @@ class px_cores_theme{
 					@header('Content-type: text/html; charset='.$output_encoding);//デフォルトのヘッダー
 
 					//出力ソースの文字コード変換(HTML)
-					$src = preg_replace('/<meta\s+charset\="[a-zA-Z0-9\_\-\.]+"\s*\/?'.'>/si','<meta charset="'.t::h($output_encoding).'" />',$src);
-					$src = preg_replace('/<meta\s+http\-equiv\="Content-Type"\s+content\="text\/html\;\s+charset\=[a-zA-Z0-9\_\-\.]+"\s*\/?'.'>/si','<meta http-equiv="Content-Type" content="text/html; charset='.t::h($output_encoding).'" />',$src);
+					$src = preg_replace('/(<meta\s+charset\=")[a-zA-Z0-9\_\-\.]+("\s*\/?'.'>)/si','$1'.t::h($output_encoding).'$2',$src);
+					$src = preg_replace('/(<meta\s+http\-equiv\="Content-Type"\s+content\="[a-zA-Z0-9\_\-\+]+\/[a-zA-Z0-9\_\-\+]+\;\s*charset\=)[a-zA-Z0-9\_\-\.]+("\s*\/?'.'>)/si','$1'.t::h($output_encoding).'$2',$src);
 					switch(strtolower($output_encoding)){
 						case 'sjis':
 						case 'sjis-win':
@@ -215,20 +217,22 @@ class px_cores_theme{
 	 * @return string href属性値
 	 */
 	public function href( $linkto ){
+		$parsed_url = parse_url($linkto);
 		$tmp_page_info_by_id = $this->px->site()->get_page_info_by_id($linkto);
+		$path = $linkto;
 		if( $tmp_page_info_by_id['path'] ){
-			$linkto = $tmp_page_info_by_id['path'];
+			$path = $tmp_page_info_by_id['path'];
 		}
 		unset($tmp_page_info_by_id);
 
-		$path = $linkto;
 		if( preg_match( '/^alias[0-9]*\:(.+)/' , $path , $tmp_matched ) ){
 			//  エイリアスを解決
 			$path = $tmp_matched[1];
-		}elseif( $this->px->site()->get_path_type( $path ) == 'dynamic' ){
+		}elseif( $this->px->site()->get_path_type( $linkto ) == 'dynamic' ){
 			//  ダイナミックパスをバインド
-			$sitemap_dynamic_path = $this->px->site()->get_dynamic_path_info( $path );
-			$tmp_path = $sitemap_dynamic_path['path_original'];
+			// $sitemap_dynamic_path = $this->px->site()->get_dynamic_path_info( $linkto );
+			// $tmp_path = $sitemap_dynamic_path['path_original'];
+			$tmp_path = $linkto;
 			$path = '';
 			while( 1 ){
 				if( !preg_match( '/^(.*?)\{(\$|\*)([a-zA-Z0-9\_\-]*)\}(.*)$/s' , $tmp_path , $tmp_matched ) ){
@@ -247,7 +251,10 @@ class px_cores_theme{
 				continue;
 			}
 			unset($tmp_path , $tmp_matched);
+		}elseif( $this->px->site()->get_path_type( $linkto ) == 'normal' ){
+			$path = $linkto;
 		}
+
 		switch( $this->px->site()->get_path_type( $path ) ){
 			case 'full_url':
 			case 'javascript':
@@ -255,7 +262,7 @@ class px_cores_theme{
 				break;
 			default:
 				// index.htmlを省略
-				$path = preg_replace('/\/index\.html((?:\?|\#).*)?$/si','/$1',$path);
+				$path = preg_replace('/\/'.$this->px->get_directory_index_preg_pattern().'((?:\?|\#).*)?$/si','/$1',$path);
 				break;
 		}
 
@@ -265,6 +272,13 @@ class px_cores_theme{
 			$path = preg_replace( '/^\/+/' , '' , $path );
 			$path = $this->px->get_install_path().$path;
 		}
+
+		// パラメータを、引数の生の状態に戻す。
+		$parsed_url_fin = parse_url($path);
+		$path = $parsed_url_fin['path'];
+		$path .= (strlen($parsed_url['query'])?'?'.$parsed_url['query']:(strlen($parsed_url_fin['query'])?'?'.$parsed_url_fin['query']:''));
+		$path .= (strlen($parsed_url['fragment'])?'#'.$parsed_url['fragment']:(strlen($parsed_url_fin['fragment'])?'?'.$parsed_url_fin['fragment']:''));
+
 		return $path;
 	}//href()
 
@@ -304,7 +318,7 @@ class px_cores_theme{
 			$is_current = true;
 		}
 		$is_popup = false;
-		if( $this->px->site()->get_page_info($linkto,'layout') == 'popup' ){
+		if( strpos( $this->px->site()->get_page_info($linkto,'layout') , 'popup' ) === 0 ){
 			$is_popup = true;
 		}
 		$label = (!is_null($label)?$label:$href); // labelがnullの場合、リンク先をラベルとする
@@ -348,7 +362,7 @@ class px_cores_theme{
 		$page_info['logical_path'] = trim($page_info['logical_path']);
 		if( $page_info['id'] == '' ){
 			//  ホームの場合
-			return '<ul><li><strong>'.t::h($this->px->site()->get_page_info('','title_breadcrumb')).'</strong></li></ul>';
+			return '<ul><li><span class="current">'.t::h($this->px->site()->get_page_info('','title_breadcrumb')).'</span></li></ul>';
 		}
 		$array_breadcrumb = explode('>',$page_info['logical_path']);
 		if( !strlen( $page_info['logical_path'] ) ){
@@ -357,6 +371,7 @@ class px_cores_theme{
 		$rtn = '';
 		$rtn .= '<ul>';
 		$rtn .= '<li><a href="'.t::h($this->href('')).'">'.t::h($this->px->site()->get_page_info('','title_breadcrumb')).'</a></li>';
+		$current_path = $this->href($current_path);
 		foreach( $array_breadcrumb as $page_id ){
 			$linkto_page_info = $this->px->site()->get_page_info($page_id);
 			$href = $this->href($linkto_page_info['path']);
@@ -366,7 +381,7 @@ class px_cores_theme{
 				$rtn .= '<li> &gt; <a href="'.t::h($href).'">'.t::h($linkto_page_info['title_breadcrumb']).'</a></li>';
 			}
 		}
-		$rtn .= '<li> &gt; <strong>'.t::h($page_info['title_breadcrumb']).'</strong></li>';
+		$rtn .= '<li> &gt; <span class="current">'.t::h($page_info['title_breadcrumb']).'</span></li>';
 		$rtn .= '</ul>';
 		return $rtn;
 	}

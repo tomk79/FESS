@@ -72,6 +72,11 @@ class px_cores_site{
 		unset($tmp_sitemap_col);
 		//  / サイトマップ定義をロード
 
+		// $path_top の設定値をチューニング
+		$path_top = $this->px->get_conf('project.path_top');
+		if(!strlen( $path_top )){ $path_top = '/'; }
+		$path_top = preg_replace( '/\/$/si' , '/'.$this->px->get_directory_index_primary() , $path_top );//index.htmlを付加する。
+
 		//  サイトマップをロード
 		$num_auto_pid = 0;
 		foreach( $ary_sitemap_files as $basename_sitemap_csv ){
@@ -132,43 +137,39 @@ class px_cores_site{
 					default:
 						// スラ止のパスに index.html を付加する。
 						// ただし、JS、アンカー、外部リンクには適用しない。
-						$tmp_array['path'] = preg_replace( '/\/((?:\?|\#).*)?$/si' , '/index.html$1' , $tmp_array['path'] );
+						$tmp_array['path'] = preg_replace( '/\/((?:\?|\#).*)?$/si' , '/'.$this->px->get_directory_index_primary().'$1' , $tmp_array['path'] );
 						break;
 				}
 				if( !strlen( $tmp_array['content'] ) ){
 					$tmp_array['content'] = $tmp_array['path'];
 					$tmp_array['content'] = preg_replace('/(?:\?|\#).*$/s','',$tmp_array['content']);
-					$tmp_array['content'] = preg_replace('/\/$/s','/index.html',$tmp_array['content']);
+					$tmp_array['content'] = preg_replace('/\/$/s','/'.$this->px->get_directory_index_primary(), $tmp_array['content']);
 				}
-				$tmp_array['content'] = preg_replace( '/\/$/si' , '/index.html' , $tmp_array['content'] );//index.htmlを付加する。
+				$tmp_array['content'] = preg_replace( '/\/$/si' , '/'.$this->px->get_directory_index_primary() , $tmp_array['content'] );//index.htmlを付加する。
 				if( !strlen( $tmp_array['id'] ) ){
 					//ページID文字列を自動生成
-					$tmp_id = '';
-					if( preg_match( '/^alias\:/s' , $tmp_array['path'] ) ){
-						//エイリアス
-						$tmp_id = ':auto_page_id.'.($num_auto_pid);
-					}else{
-						//物理ページ
-						$tmp_id = $tmp_array['path'];
-						$tmp_id = $this->px->dbh()->trim_extension($tmp_id);
-						$tmp_id = preg_replace( '/\/index$/si' , '/' , $tmp_id );
-						$tmp_id = preg_replace( '/\/+$/si' , '' , $tmp_id );
-						$tmp_id = preg_replace( '/^\/+/si' , '' , $tmp_id );
-						$tmp_id = preg_replace( '/\//si' , '.' , $tmp_id );
-					}
+					$tmp_id = ':auto_page_id.'.($num_auto_pid);
+					// if( preg_match( '/^alias\:/s' , $tmp_array['path'] ) ){
+					// 	//エイリアス
+					// 	$tmp_id = ':auto_page_id.'.($num_auto_pid);
+					// }else{
+					// 	//物理ページ
+					// 	$tmp_id = $tmp_array['path'];
+					// 	$tmp_id = $this->px->dbh()->trim_extension($tmp_id);
+					// 	$tmp_id = preg_replace( '/\/index$/si' , '/' , $tmp_id );
+					// 	$tmp_id = preg_replace( '/\/+$/si' , '' , $tmp_id );
+					// 	$tmp_id = preg_replace( '/^\/+/si' , '' , $tmp_id );
+					// 	$tmp_id = preg_replace( '/\//si' , '.' , $tmp_id );
+					// }
 					$tmp_array['id'] = $tmp_id;
 					unset($tmp_id);
 				}
 
-				if( strlen($this->px->get_conf('project.path_top')) ){
-					$tmp_path_top = $this->px->get_conf('project.path_top');
-					$tmp_path_top = preg_replace( '/\/$/si' , '/index.html' , $tmp_path_top );//index.htmlを付加する。
-					if( $tmp_array['path'] == $tmp_path_top ){
-						$tmp_array['id'] = '';
-					}elseif( !strlen($tmp_array['id']) ){
-						$tmp_array['id'] = ':auto_page_id.'.($num_auto_pid);
-					}
-					unset($tmp_path_top);
+				// project.path_top の設定に対する処理
+				if( $tmp_array['path'] == $path_top ){
+					$tmp_array['id'] = '';
+				}elseif( !strlen($tmp_array['id']) ){
+					$tmp_array['id'] = ':auto_page_id.'.($num_auto_pid);
 				}
 
 				if($this->get_path_type( $tmp_array['path'] ) == 'dynamic'){
@@ -349,6 +350,20 @@ class px_cores_site{
 	}//get_category_top()
 
 	/**
+	 * グローバルメニューのページID一覧を取得する
+	 */
+	public function get_global_menu(){
+		$rtn = array();
+		$home_children = $this->get_children('', array('filter'=>false));
+		foreach( $home_children as $page_id ){
+			$page_info = $this->get_page_info($page_id);
+			if(!$page_info['category_top_flg']){continue;}
+			array_push($rtn, $page_id);
+		}
+		return $rtn;
+	}//get_global_menu()
+
+	/**
 	 * ページ情報を取得する。
 	 * @param パス または ページID
 	 * @param [省略可] 取り出す単一要素のキー。省略時はすべての要素を含む連想配列が返される。
@@ -361,6 +376,22 @@ class px_cores_site{
 			//ページIDで指定された場合、パスに置き換える
 			$path = $this->sitemap_id_map[$path];
 		}
+
+		$path = preg_replace('/\/'.$this->px->get_directory_index_preg_pattern().'((?:\?|\#).*)?$/si','/$1',$path);//directory_index を一旦省略
+
+		$tmp_path = $path;
+		if( is_null( $this->sitemap_array[$path] ) ){
+			foreach( $this->px->get_directory_index() as $index_file_name ){
+				$tmp_path = preg_replace('/\/((?:\?|\#).*)?$/si','/'.$index_file_name.'$1',$path);//省略された index.html を付加。
+				if( !is_null( $this->sitemap_array[$tmp_path] ) ){
+					break;
+				}
+			}
+		}
+		$path = $tmp_path;
+		$parsed_url = parse_url($path);
+		unset($tmp_path);
+
 		if( is_null( $this->sitemap_array[$path] ) ){
 			//  サイトマップにズバリなければ、
 			//  ダイナミックパスを検索する。
@@ -377,8 +408,14 @@ class px_cores_site{
 			case 'anchor':
 				break;
 			default:
-				$path = preg_replace( '/\/$/si' , '/index.html' , $path );
+				$path = preg_replace( '/\/$/si' , '/'.$this->px->get_directory_index_primary() , $path );
 				break;
+		}
+
+		if( is_null( $this->sitemap_array[$path] ) ){
+			//  サイトマップにズバリなければ、
+			//  引数からパラメータを外したパスだけで再検索
+			$path = $parsed_url['path'];
 		}
 
 		$rtn = $this->sitemap_array[$path];
@@ -400,10 +437,16 @@ class px_cores_site{
 		$path_type = $this->get_path_type($path);
 		if( is_string( $path_type ) ){
 			//  $path がスラドメされている場合に index.html を付加
-			$path = preg_replace( '/\/$/si' , '/index.html' , $path );
+			$path = preg_replace( '/\/$/si' , '/'.$this->px->get_directory_index_primary() , $path );
 		}
 
 		$before_page_info = $this->get_page_info( $path );
+		$current_page_info = $this->get_current_page_info();
+		$is_target_current_page = false;
+		if( $before_page_info === $current_page_info ){
+			$is_target_current_page = true;
+		}
+
 		if(!is_array($before_page_info) || ( $before_page_info['path'] != $path && $before_page_info['id'] != $path ) ){
 			//まったく新しいページだったら
 			$before_page_info = $this->get_current_page_info();
@@ -465,6 +508,11 @@ class px_cores_site{
 
 		//  パブリッシュ対象にリンクを追加
 		$this->px->add_relatedlink( $this->px->theme()->href($tmp_array['path']) );
+
+		// カレントページにレイアウトの指示があったら、テーマに反映する。
+		if( $is_target_current_page && strlen($page_info['layout']) ){
+			$this->px->theme()->set_layout_id( $page_info['layout'] );
+		}
 
 		return true;
 	}//set_page_info()
@@ -553,7 +601,7 @@ class px_cores_site{
 			continue;
 		}
 		unset($dynamic_path , $tmp_matched);
-		$path = preg_replace('/\/$/si','/index.html',$path); // index.htmlをつける
+		$path = preg_replace('/\/$/si','/'.$this->px->get_directory_index_primary(),$path); // index.htmlをつける
 		return $path;
 	}//bind_dynamic_path_param()
 
