@@ -1,8 +1,8 @@
 # Require any additional compass plugins here.
 
 # Set this to the root of your project when deployed:
-http_path = "/htdocs/"
-css_dir = "/htdocs/"
+http_path = "/htdocs/FESS/"
+css_dir = "/htdocs/FESS/"
 sass_dir = "sass"
 images_dir = "/common/img"
 javascripts_dir = "/common/js"
