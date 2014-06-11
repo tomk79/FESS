@@ -88,8 +88,8 @@ dl dt{
 	.cols {
 	}
 	.cols .cols-col{
-		float:none;
-		width:auto;
+		float:none !important;
+		width:auto !important;
 	}
 
 }
