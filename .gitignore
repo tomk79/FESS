@@ -1,4 +1,4 @@
-htdocs/_caches/*
+htdocs/caches/*
 htdocs/_PX/_sys/*
 .sass-cache/*
 .DS_Store
