@@ -1,5 +1,5 @@
-htdocs/caches/*
-htdocs/_PX/_sys/*
+htdocs/FESS/caches/*
+htdocs/FESS/_PX/_sys/*
 .sass-cache/*
 .DS_Store
 Thumbs.db
