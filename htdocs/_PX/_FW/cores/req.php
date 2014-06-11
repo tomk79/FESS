@@ -1,18 +1,47 @@
 <?php
 /**
+ * class px_cores_req
+ * 
+ * PxFWのコアオブジェクトの1つ `$req` のオブジェクトクラスを定義します。
+ * 
+ * @author Tomoya Koyanagi <tomk79@gmail.com>
+ */
+/**
  * PxFW core object class: Request Manager
+ * 
+ * PxFWのコアオブジェクトの1つ `$req` のオブジェクトクラスです。
+ * このオブジェクトは、PxFWの初期化処理の中で自動的に生成され、`$px` の内部に格納されます。
+ * 
+ * メソッド `$px->req()` を通じてアクセスします。
  * 
  * @author Tomoya Koyanagi <tomk79@gmail.com>
  */
 class px_cores_req{
+	/**
+	 * $pxオブジェクト
+	 */
 	private $px;
+	/**
+	 * URLパラメータ
+	 */
 	private $param = array();
+	/**
+	 * ダイナミックパスパラメータ
+	 */
 	private $dynamic_path_param = array();
+	/**
+	 * コマンドからのアクセス フラグ
+	 */
 	private $flg_cmd = false;
+	/**
+	 * リクエストファイルパス
+	 */
 	private $request_file_path;
 
 	/**
-	 *  コンストラクタ
+	 * コンストラクタ
+	 * 
+	 * @param object $px $pxオブジェクト
 	 */
 	public function __construct( $px ){
 		$this->px = $px;
@@ -29,6 +58,14 @@ class px_cores_req{
 
 	/**
 	 *	入力パラメータを解析する。
+	 * 
+	 * `$_GET`, `$_POST`, `$_FILES` に送られたパラメータ情報を取りまとめ、1つの連想配列としてまとめま、オブジェクト内に保持します。
+	 * 
+	 * コマンドラインから実行された場合は、コマンドラインオプションをそれぞれ `=` 記号で区切り、URLパラメータ同様にパースします。
+	 * 
+	 * このメソッドの処理には、入力文字コードの変換(UTF-8へ統一)などの整形処理が含まれます。
+	 * 
+	 * @return bool 常に `true`
 	 */
 	private function parse_input(){
 		if( !array_key_exists( 'REMOTE_ADDR' , $_SERVER ) ){
@@ -81,7 +118,10 @@ class px_cores_req{
 	}//parse_input()
 
 	/**
-	 *	入力値に対する標準的な変換事項
+	 *	入力値に対する標準的な変換処理
+	 * 
+	 * @param array $param パラメータ
+	 * @return array 変換後のパラメータ
 	 */
 	private function input_default_convert( $param ){
 		#	PxFW 0.6.1 追加。0:04 2009/05/30
@@ -115,14 +155,21 @@ class px_cores_req{
 	}//input_default_convert()
 
 	/**
-	 * ダイナミックパスからパラメータを受け取る
+	 * ダイナミックパスからパラメータを受け取る。
+	 * 
+	 * @param string $key ダイナミックパスパラメータ名
+	 * @return string ダイナミックパスパラメータ値
 	 */
 	public function get_path_param( $key ){
 		return $this->dynamic_path_param[$key];
 	}//get_path_param()
 
 	/**
-	 * ダイナミックパスからのパラメータをセットする
+	 * ダイナミックパスからのパラメータをセットする。
+	 * 
+	 * @param string $key ダイナミックパスパラメータ名
+	 * @param string $val ダイナミックパスパラメータ値
+	 * @return bool 常に `true`
 	 */
 	public function set_path_param( $key , $val ){
 		$this->dynamic_path_param[$key] = $val;
@@ -130,14 +177,25 @@ class px_cores_req{
 	}//set_path_param()
 
 	/**
-	 * パラメータを取得する
+	 * パラメータを取得する。
+	 * 
+	 * `$_GET`, `$_POST`、`$_FILES` を合わせた連想配列の中から `$key` に当たる値を引いて返します。
+	 * キーが定義されていない場合は、`null` を返します。
+	 * 
+	 * @param string $key URLパラメータ名
+	 * @return mixed URLパラメータ値
 	 */
 	public function get_param( $key ){
+		if( !array_key_exists($key, $this->param) ){ return null; }
 		return $this->param[$key];
 	}//get_param()
 
 	/**
-	 * パラメータをセットする
+	 * パラメータをセットする。
+	 * 
+	 * @param string $key パラメータ名
+	 * @param mixed $val パラメータ値
+	 * @return bool 常に `true`
 	 */
 	public function set_param( $key , $val ){
 		$this->param[$key] = $val;
@@ -145,21 +203,34 @@ class px_cores_req{
 	}//set_param()
 
 	/**
-	 * パラメータをすべて取得する
+	 * パラメータをすべて取得する。
+	 *
+	 * @return array すべてのパラメータを格納する連想配列
 	 */
 	public function get_all_params(){
 		return $this->param;
 	}
 
 	/**
-	 * クッキー情報を取得
+	 * クッキー情報を取得する。
+	 * 
+	 * @param string $key クッキー名
+	 * @return mixed クッキーの値
 	 */
 	public function get_cookie( $key ){
 		return	$_COOKIE[$key];
 	}//get_cookie()
 
 	/**
-	 * クッキー情報をセット
+	 * クッキー情報をセットする。
+	 * 
+	 * @param string $key クッキー名
+	 * @param string $val クッキー値
+	 * @param string $expire クッキーの有効期限
+	 * @param string $path サーバー上での、クッキーを有効としたいパス
+	 * @param string $domain クッキーが有効なドメイン
+	 * @param bool $secure クライアントからのセキュアな HTTPS 接続の場合にのみクッキーが送信されるようにします
+	 * @return 成功時 `true`、失敗時 `false` を返します。
 	 */
 	public function set_cookie( $key , $val , $expire = null , $path = null , $domain = null , $secure = false ){
 		if( is_null( $path ) ){
@@ -177,7 +248,10 @@ class px_cores_req{
 	}//set_cookie()
 
 	/**
-	 * クッキー情報を削除
+	 * クッキー情報を削除する。
+	 * 
+	 * @param string $key クッキー名
+	 * @return bool 成功時 `true`、失敗時 `false` を返します。
 	 */
 	public function delete_cookie( $key ){
 		if( !@setcookie( $key , null ) ){
@@ -188,7 +262,10 @@ class px_cores_req{
 	}//delete_cookie()
 
 	/**
-	 * セッションを開始
+	 * セッションを開始する。
+	 * 
+	 * @param string $sid セッションID。省略時、自動発行。
+	 * @return bool セッションが正常に開始した場合に `true`、それ以外の場合に `false` を返します。
 	 */
 	private function session_start( $sid = null ){
 		$expire = intval($this->px->get_conf('system.session_expire'));
@@ -234,21 +311,31 @@ class px_cores_req{
 	}//session_start()
 
 	/**
-	 * セッションIDを取得
+	 * セッションIDを取得する。
+	 *
+	 * @return string セッションID
 	 */
 	public function get_session_id(){
 		return session_id();
 	}//get_session_id()
 
 	/**
-	 * セッション情報を取得
+	 * セッション情報を取得する。
+	 *
+	 * @param string $key セッションキー
+	 * @return mixed `$key` に対応するセッション値
 	 */
 	public function get_session( $key ){
+		if( !array_key_exists($key, $_SESSION) ){ return null; }
 		return $_SESSION[$key];
 	}//get_session()
 
 	/**
-	 * セッション情報をセット
+	 * セッション情報をセットする。
+	 *
+	 * @param string $key セッションキー
+	 * @param mixed $val `$key` に対応するセッション値
+	 * @return bool 常に `true` を返します。
 	 */
 	public function set_session( $key , $val ){
 		$_SESSION[$key] = $val;
@@ -256,7 +343,10 @@ class px_cores_req{
 	}//set_session()
 
 	/**
-	 * セッション情報を削除
+	 * セッション情報を削除する。
+	 *
+	 * @param string $key セッションキー
+	 * @return bool 常に `true` を返します。
 	 */
 	public function delete_session( $key ){
 		unset( $_SESSION[$key] );
@@ -265,7 +355,11 @@ class px_cores_req{
 
 
 	/**
-	 * アップロードされたファイルをセッションに保存
+	 * アップロードされたファイルをセッションに保存する。
+	 *
+	 * @param string $key セッションキー
+	 * @param array $ulfileinfo アップロードファイル情報
+	 * @return bool 成功時 `true`、失敗時 `false` を返します。
 	 */
 	public function save_uploadfile( $key , $ulfileinfo ){
 		// base64でエンコードして、バイナリデータを持ちます。
@@ -293,9 +387,12 @@ class px_cores_req{
 		return	true;
 	}
 	/**
-	 * セッションに保存されたファイル情報を取得
+	 * セッションに保存されたファイル情報を取得する。
+	 *
+	 * @param string $key セッションキー
+	 * @return array|bool 成功時、ファイル情報 を格納した連想配列、失敗時 `false` を返します。
 	 */
-	public function get_uploadfile( $key , $option = array() ){
+	public function get_uploadfile( $key ){
 		if(!strlen($key)){ return false; }
 
 		$RTN = $_SESSION['FILE'][$key];
@@ -305,20 +402,27 @@ class px_cores_req{
 		return	$RTN;
 	}
 	/**
-	 * セッションに保存されたファイル情報の一覧を取得
+	 * セッションに保存されたファイル情報の一覧を取得する。
+	 * 
+	 * @return array ファイル情報 を格納した連想配列
 	 */
 	public function get_uploadfile_list(){
 		return	array_keys( $_SESSION['FILE'] );
 	}
 	/**
-	 * セッションに保存されたファイルを削除
+	 * セッションに保存されたファイルを削除する。
+	 *
+	 * @param string $key セッションキー
+	 * @return bool 常に `true` を返します。
 	 */
 	public function delete_uploadfile( $key ){
 		unset( $_SESSION['FILE'][$key] );
 		return	true;
 	}
 	/**
-	 * セッションに保存されたファイルを全て削除
+	 * セッションに保存されたファイルを全て削除する。
+	 * 
+	 * @return bool 常に `true` を返します。
 	 */
 	public function delete_uploadfile_all(){
 		return	$this->delete_session( 'FILE' );
@@ -326,7 +430,9 @@ class px_cores_req{
 
 
 	/**
-	 * リクエストパスを取得する
+	 * リクエストパスを取得する。
+	 *
+	 * @return string リクエストパス
 	 */
 	public function get_request_file_path(){
 		return $this->request_file_path;
@@ -334,10 +440,12 @@ class px_cores_req{
 
 	/**
 	 *  SSL通信か調べる
+	 * 
+	 * @return bool SSL通信の場合 `true`、それ以外の場合 `false` を返します。
 	 */
 	public function is_ssl(){
-		if( $_SERVER['HTTP_SSL'] || $_SERVER['HTTPS'] ){
-			#	SSL通信が有効か否か判断
+		if( @$_SERVER['HTTP_SSL'] || @$_SERVER['HTTPS'] ){
+			// SSL通信が有効か否か判断
 			return true;
 		}
 		return false;
@@ -345,6 +453,8 @@ class px_cores_req{
 
 	/**
 	 * コマンドラインによる実行か確認する。
+	 * 
+	 * @return bool コマンドからの実行の場合 `true`、ウェブからの実行の場合 `false` を返します。
 	 */
 	public function is_cmd(){
 		if( array_key_exists( 'REMOTE_ADDR' , $_SERVER ) ){

@@ -1,19 +1,53 @@
 <?php
 /**
+ * class px_cores_site
+ * 
+ * PxFWのコアオブジェクトの1つ `$site` のオブジェクトクラスを定義します。
+ * 
+ * @author Tomoya Koyanagi <tomk79@gmail.com>
+ */
+/**
  * PxFW core object class: Site and page Manager
+ * 
+ * PxFWのコアオブジェクトの1つ `$site` のオブジェクトクラスです。
+ * このオブジェクトは、PxFWの初期化処理の中で自動的に生成され、`$px` の内部に格納されます。
+ * 
+ * メソッド `$px->site()` を通じてアクセスします。
  * 
  * @author Tomoya Koyanagi <tomk79@gmail.com>
  */
 class px_cores_site{
+	/**
+	 * $pxオブジェクト
+	 */
 	private $px;
+	/**
+	 * サイトマップ定義
+	 */
 	private $sitemap_definition = array();
+	/**
+	 * サイトマップ配列
+	 */
 	private $sitemap_array = array();
+	/**
+	 * ページIDマップ
+	 *
+	 * ページIDからパスを引くための連想配列。
+	 */
 	private $sitemap_id_map = array();
+	/**
+	 * ダイナミックパスの一覧
+	 */
 	private $sitemap_dynamic_paths = array();
+	/**
+	 * サイトマップのツリー構造
+	 */
 	private $sitemap_page_tree = array();
 
 	/**
 	 * コンストラクタ
+	 * 
+	 * @param object $px $pxオブジェクト
 	 */
 	public function __construct( $px ){
 		$this->px = $px;
@@ -34,7 +68,18 @@ class px_cores_site{
 	}
 
 	/**
-	 * サイトマップCSVを読み込む
+	 * サイトマップCSVを読み込む。
+	 * 
+	 * サイトマップディレクトリに格納されたサイトマップCSV (`./_PX/sitemaps/*.csv`) を読み込み、パースします。
+	 * 
+	 * この処理は、サイトマップの行数や階層構造によっては、重い処理になります。
+	 * そのため、このメソッドは、パースした後の配列情報をキャッシュディレクトリ(`./_PX/caches/sitemaps/`)にキャッシュし、
+	 * 次回以降はキャッシュを読み込むことで重い処理を回避します。
+	 * 
+	 * このキャッシュは、キャッシュファイルのタイムスタンプより新しいCSVを発見するか、
+	 * `?PX=clearcache` によりキャッシュがクリアされると、次回アクセス時に再生成されます。
+	 * 
+	 * @return bool 常に `true`
 	 */
 	private function load_sitemap_csv(){
 		$path_sitemap_cache_dir = $this->px->get_conf('paths.px_dir').'_sys/caches/sitemaps/';
@@ -223,18 +268,29 @@ class px_cores_site{
 		//  / サイトマップをロード
 
 		//  ダイナミックパスを並び替え
-		usort($this->sitemap_dynamic_paths, array($this,'sort_sitemap_dynamic_paths'));
+		usort($this->sitemap_dynamic_paths, function($a,$b){
+			$path_short_a = preg_replace( '/\{.*$/si', '', $a['path_original'] );
+			$path_short_b = preg_replace( '/\{.*$/si', '', $b['path_original'] );
+			if( strlen($path_short_a) > strlen($path_short_b) ){ return -1; }
+			if( strlen($path_short_a) < strlen($path_short_b) ){ return  1; }
+			if( $path_short_a > $path_short_b ){ return -1; }
+			if( $path_short_a < $path_short_b ){ return  1; }
+			return 0;
+		});
 
 		//  ページツリー情報を構成
 		$this->sitemap_page_tree = array();
 		foreach( $this->sitemap_array as $tmp_path=>$tmp_page_info ){
 			set_time_limit(30);//タイマー延命
-			$this->get_children( $tmp_path, array('filter'=>true) );
-			$this->get_children( $tmp_path, array('filter'=>false) );//list_flgを無視して、全員持ってくる
+			$this->get_children( $tmp_path );
+			// $this->get_children( $tmp_path, array('filter'=>true) );
+			// $this->get_children( $tmp_path, array('filter'=>false) );//list_flgを無視して、全員持ってくる
 		}
+		set_time_limit(30);//タイマーリセット
 		unset($tmp_path, $tmp_page_info );
 
 		//  キャッシュディレクトリを作成
+		set_time_limit(0);//タイマー延命
 		$this->px->dbh()->mkdir($path_sitemap_cache_dir);
 
 		//  キャッシュファイルを作成
@@ -243,25 +299,15 @@ class px_cores_site{
 		$this->px->dbh()->file_overwrite( $path_sitemap_cache_dir.'sitemap_id_map.array' , t::data2phpsrc($this->sitemap_id_map) );
 		$this->px->dbh()->file_overwrite( $path_sitemap_cache_dir.'sitemap_dynamic_paths.array' , t::data2phpsrc($this->sitemap_dynamic_paths) );
 		$this->px->dbh()->file_overwrite( $path_sitemap_cache_dir.'sitemap_page_tree.array' , t::data2phpsrc($this->sitemap_page_tree) );
+		set_time_limit(30);//タイマーリセット
 
 		return true;
 	}//load_sitemap_csv();
 
 	/**
-	 * ダイナミックパスの検索順を並べ替える
-	 */
-	private function sort_sitemap_dynamic_paths($a,$b){
-		$path_short_a = preg_replace( '/\{.*$/si', '', $a['path_original'] );
-		$path_short_b = preg_replace( '/\{.*$/si', '', $b['path_original'] );
-		if( strlen($path_short_a) > strlen($path_short_b) ){ return -1; }
-		if( strlen($path_short_a) < strlen($path_short_b) ){ return  1; }
-		if( $path_short_a > $path_short_b ){ return -1; }
-		if( $path_short_a < $path_short_b ){ return  1; }
-		return 0;
-	}
-
-	/**
-	 * サイトマップキャッシュが読み込み可能か調べる
+	 * サイトマップキャッシュが読み込み可能か調べる。
+	 * 
+	 * @return bool 読み込み可能な場合に `true`、読み込みできない場合に `false` を返します。
 	 */
 	private function is_sitemap_cache(){
 		$path_sitemap_cache_dir = $this->px->get_conf('paths.px_dir').'_sys/caches/sitemaps/';
@@ -286,7 +332,12 @@ class px_cores_site{
 	}
 
 	/**
-	 * サイトマップ定義を取得する
+	 * サイトマップ定義を取得する。
+	 * 
+	 * サイトマップ定義は、サイトマップ定義ファイル `./_PX/configs/sitemap_definition.csv` から作成されます。
+	 * 各 サイトマップCSV 中に個別に定義された列は、このメソッドから取得することはできません。
+	 * 
+	 * @return array サイトマップ定義を格納した連想配列
 	 */
 	public function get_sitemap_definition(){
 		return $this->sitemap_definition;
@@ -294,13 +345,18 @@ class px_cores_site{
 
 	/**
 	 * サイトマップ配列を取得する。
+	 * 
+	 * @return array 全ページが含まれたサイトマップ配列
 	 */
 	public function get_sitemap(){
 		return $this->sitemap_array;
 	}
 
 	/**
-	 * 親ページのIDを取得する
+	 * 親ページのIDを取得する。
+	 * 
+	 * @param string $path 起点とするページのパス または ページID。省略時、カレントページから自動的に取得します。
+	 * @return string|bool 親ページを見つけた場合に、そのページID。見つからない場合には `false` を返します。
 	 */
 	public function get_parent( $path = null ){
 		if( is_null( $path ) ){
@@ -321,7 +377,13 @@ class px_cores_site{
 	}
 
 	/**
-	 * 所属するカテゴリトップページのIDを取得する
+	 * 所属するカテゴリトップページのIDを取得する。
+	 * 
+	 * ページ `$path` の親ページをたどり、初めに `category_top_flg` が立っているページを、
+	 * 自身が所属するカテゴリのトップページとみなし、そのページIDを返します。
+	 * 
+	 * @param string $path 起点とするページのパス または ページID。省略時、カレントページから自動的に取得します。
+	 * @return string カテゴリトップページのページID
 	 */
 	public function get_category_top( $path = null ){
 		if( is_null( $path ) ){
@@ -350,11 +412,19 @@ class px_cores_site{
 	}//get_category_top()
 
 	/**
-	 * グローバルメニューのページID一覧を取得する
+	 * グローバルメニューのページID一覧を取得する。
+	 * 
+	 * サイトマップ配列から、次の条件に当てはまるページをグローバルメニューとして抽出します。
+	 * 
+	 * - トップページ直下にある。
+	 * - かつ、`list_flg` が立っている。
+	 * - かつ、`category_top_flg` が立っている。
+	 * 
+	 * @return array ページの一覧
 	 */
 	public function get_global_menu(){
 		$rtn = array();
-		$home_children = $this->get_children('', array('filter'=>false));
+		$home_children = $this->get_children('', array('filter'=>true));//PxFW 1.0.4 list_flg を参照するように変更
 		foreach( $home_children as $page_id ){
 			$page_info = $this->get_page_info($page_id);
 			if(!$page_info['category_top_flg']){continue;}
@@ -364,15 +434,59 @@ class px_cores_site{
 	}//get_global_menu()
 
 	/**
-	 * ページ情報を取得する。
-	 * @param パス または ページID
-	 * @param [省略可] 取り出す単一要素のキー。省略時はすべての要素を含む連想配列が返される。
+	 * ショルダーメニューのページID一覧を取得する。
+	 * 
+	 * サイトマップ配列から、次の条件に当てはまるページをショルダーメニューとして抽出します。
+	 * 
+	 * - トップページ直下にある。
+	 * - かつ、`list_flg` が立っている。
+	 * - かつ、`category_top_flg` が立っていない。
+	 * 
+	 * このメソッドは、PxFW 1.0.4 で追加されました。
+	 * 
+	 * @return array ページの一覧
 	 */
-	public function get_page_info( $path ){
-		if( is_null($path) ){
-			return null;
+	public function get_shoulder_menu(){
+		$rtn = array();
+		$home_children = $this->get_children('', array('filter'=>true));
+		foreach( $home_children as $page_id ){
+			$page_info = $this->get_page_info($page_id);
+			if($page_info['category_top_flg']){continue;}
+			array_push($rtn, $page_id);
 		}
-		if( !is_null($this->sitemap_id_map[$path]) ){
+		return $rtn;
+	}//get_shoulder_menu()
+
+	/**
+	 * ページ情報を取得する。
+	 * 
+	 * このメソッドは、指定したページの情報を連想配列で返します。対象のページは第1引数にパスまたはページIDで指定します。
+	 * 
+	 * カレントページの情報を取得する場合は、代わりに `$px->site()->get_current_page_info()` が使用できます。
+	 * 
+	 * パスで指定したページの情報を取得する例 :
+	 * <pre>&lt;?php
+	 * // ページ &quot;/aaa/bbb.html&quot; のページ情報を得る
+	 * $page_info = $px-&gt;site()-&gt;get_page_info('/aaa/bbb.html');
+	 * test::var_dump( $page_info );
+	 * ?&gt;</pre>
+	 * 
+	 * ページIDで指定したページの情報を取得する例 :
+	 * <pre>&lt;?php
+	 * // トップページのページ情報を得る
+	 * // (トップページのページIDは必ず空白の文字列)
+	 * $page_info = $px-&gt;site()-&gt;get_page_info('');
+	 * test::var_dump( $page_info );
+	 * ?&gt;</pre>
+	 * 
+	 * 
+	 * @param string $path 取得するページのパス または ページID。省略時、カレントページから自動的に取得します。
+	 * @param string $key 取り出す単一要素のキー。省略時はすべての要素を含む連想配列が返されます。省略可。
+	 * @return mixed 単一ページ情報を格納する連想配列、`$key` が指定された場合は、その値のみ。
+	 */
+	public function get_page_info( $path, $key = null ){
+		if( is_null($path) ){ return null; }
+		if( array_key_exists($path, $this->sitemap_id_map) && !is_null($this->sitemap_id_map[$path]) ){
 			//ページIDで指定された場合、パスに置き換える
 			$path = $this->sitemap_id_map[$path];
 		}
@@ -380,10 +494,10 @@ class px_cores_site{
 		$path = preg_replace('/\/'.$this->px->get_directory_index_preg_pattern().'((?:\?|\#).*)?$/si','/$1',$path);//directory_index を一旦省略
 
 		$tmp_path = $path;
-		if( is_null( $this->sitemap_array[$path] ) ){
+		if( !array_key_exists($path, $this->sitemap_id_map) || is_null( $this->sitemap_array[$path] ) ){
 			foreach( $this->px->get_directory_index() as $index_file_name ){
 				$tmp_path = preg_replace('/\/((?:\?|\#).*)?$/si','/'.$index_file_name.'$1',$path);//省略された index.html を付加。
-				if( !is_null( $this->sitemap_array[$tmp_path] ) ){
+				if( !is_null( @$this->sitemap_array[$tmp_path] ) ){
 					break;
 				}
 			}
@@ -392,7 +506,7 @@ class px_cores_site{
 		$parsed_url = parse_url($path);
 		unset($tmp_path);
 
-		if( is_null( $this->sitemap_array[$path] ) ){
+		if( is_null( @$this->sitemap_array[$path] ) ){
 			//  サイトマップにズバリなければ、
 			//  ダイナミックパスを検索する。
 			$sitemap_dynamic_path = $this->get_dynamic_path_info( $path );
@@ -412,17 +526,17 @@ class px_cores_site{
 				break;
 		}
 
-		if( is_null( $this->sitemap_array[$path] ) ){
+		if( is_null( @$this->sitemap_array[$path] ) ){
 			//  サイトマップにズバリなければ、
 			//  引数からパラメータを外したパスだけで再検索
 			$path = $parsed_url['path'];
 		}
 
-		$rtn = $this->sitemap_array[$path];
+		$rtn = @$this->sitemap_array[$path];
 		if( !is_array($rtn) ){ return null; }
-		if( !strlen( $rtn['title_breadcrumb'] ) ){ $rtn['title_breadcrumb'] = $rtn['title']; }
-		if( !strlen( $rtn['title_h1'] ) ){ $rtn['title_h1'] = $rtn['title']; }
-		if( !strlen( $rtn['title_label'] ) ){ $rtn['title_label'] = $rtn['title']; }
+		if( !strlen( @$rtn['title_breadcrumb'] ) ){ $rtn['title_breadcrumb'] = $rtn['title']; }
+		if( !strlen( @$rtn['title_h1'] ) ){ $rtn['title_h1'] = $rtn['title']; }
+		if( !strlen( @$rtn['title_label'] ) ){ $rtn['title_label'] = $rtn['title']; }
 		if( count($args) >= 2 ){
 			$rtn = $rtn[$args[1]];
 		}
@@ -431,10 +545,18 @@ class px_cores_site{
 
 	/**
 	 * ページ情報をセットする。
+	 * 
+	 * @param string $path セットするページのパス または ページID。
+	 * @param array $page_info セットするページ情報を格納する連想配列。
+	 * @return bool 常に `true`
 	 */
 	public function set_page_info( $path , $page_info ){
 		static $num_auto_pid = 0;
 		$path_type = $this->get_path_type($path);
+		if( is_null( $path_type ) || $path_type === false ){
+			$path = $this->px->req()->get_request_file_path();
+			$path_type = $this->get_path_type($path);
+		}
 		if( is_string( $path_type ) ){
 			//  $path がスラドメされている場合に index.html を付加
 			$path = preg_replace( '/\/$/si' , '/'.$this->px->get_directory_index_primary() , $path );
@@ -453,7 +575,7 @@ class px_cores_site{
 			if( is_string( $path_type ) ){
 				//  パスでの指定だった場合
 				$before_page_info['path'] = $path;
-				if(!strlen($page_info['id'])){
+				if(@!strlen($page_info['id'])){
 					//ページIDを動的に発行
 					$before_page_info['id'] = ':live_auto_page_id.'.($num_auto_pid++);
 				}
@@ -475,7 +597,7 @@ class px_cores_site{
 		}
 		$tmp_array = $before_page_info;
 
-		if( strlen($page_info['title']) && $page_info['title']!=$tmp_array['title'] ){
+		if( @strlen($page_info['title']) && $page_info['title']!=@$tmp_array['title'] ){
 			//タイトルの指定があったら
 			//タイトル系オプション値も自動で振りたいので、あえて消す。
 			unset( $tmp_array['title_breadcrumb'] );
@@ -484,7 +606,7 @@ class px_cores_site{
 		}
 
 		//  パンくず欄の先頭が > から始まっていた場合、削除
-		$tmp_array['logical_path'] = preg_replace( '/^\>+/s' , '' , $tmp_array['logical_path'] );
+		$tmp_array['logical_path'] = preg_replace( '/^\>+/s' , '' , @$tmp_array['logical_path'] );
 
 		//  指定値を反映
 		foreach( $page_info as $key=>$val ){
@@ -510,7 +632,7 @@ class px_cores_site{
 		$this->px->add_relatedlink( $this->px->theme()->href($tmp_array['path']) );
 
 		// カレントページにレイアウトの指示があったら、テーマに反映する。
-		if( $is_target_current_page && strlen($page_info['layout']) ){
+		if( $is_target_current_page && @strlen($page_info['layout']) ){
 			$this->px->theme()->set_layout_id( $page_info['layout'] );
 		}
 
@@ -518,14 +640,20 @@ class px_cores_site{
 	}//set_page_info()
 
 	/**
-	 * ページIDからページ情報を得る
+	 * ページIDからページ情報を得る。
+	 * 
+	 * @param string $page_id 取得するページのページID
+	 * @return array ページ情報を格納する連想配列
 	 */
 	public function get_page_info_by_id( $page_id ){
 		return $this->get_page_info($page_id);
 	}
 
 	/**
-	 * パスからページIDを得る
+	 * パスからページIDを得る。
+	 * 
+	 * @param string $path 取得するページのパス
+	 * @return string `$path` に対応するページID
 	 */
 	public function get_page_id_by_path( $path ){
 		$page_info = $this->get_page_info($path);
@@ -533,7 +661,10 @@ class px_cores_site{
 	}
 
 	/**
-	 * ページIDからパスを得る
+	 * ページIDからパスを得る。
+	 * 
+	 * @param string $page_id 取得するページのページID
+	 * @return string `$page_id` に対応するパス
 	 */
 	public function get_page_path_by_id( $page_id ){
 		$page_info = $this->get_page_info($page_id);
@@ -543,7 +674,16 @@ class px_cores_site{
 
 
 	/**
-	 * 現在のページの情報を得る
+	 * 現在のページの情報を得る。
+	 * 
+	 * 例：
+	 * <pre>&lt;?php
+	 * // カレントページのページ情報を得る
+	 * $page_info = $px-&gt;site()-&gt;get_current_page_info();
+	 * test::var_dump( $page_info );
+	 * ?&gt;</pre>
+	 * 
+	 * @return array カレントページのページ情報を格納する連想配列
 	 */
 	public function get_current_page_info(){
 		$current_path = $this->px->req()->get_request_file_path();
@@ -551,7 +691,21 @@ class px_cores_site{
 	}
 
 	/**
-	 * パスがダイナミックパスにマッチするか調べる
+	 * 現在のページの情報をセットする。
+	 * 
+	 * @param array $page_info セットするページ情報を格納する連想配列。
+	 * @return bool 常に `true`
+	 */
+	public function set_current_page_info( $page_info ){
+		$current_path = $this->px->req()->get_request_file_path();
+		return $this->set_page_info( $current_path, $page_info );
+	}
+
+	/**
+	 * パスがダイナミックパスにマッチするか調べる。
+	 * 
+	 * @param string $path 調べる対象のパス文字列
+	 * @return bool マッチするダイナミックパスが見つかったら `true`、なければ `false` を返します。
 	 */
 	public function is_match_dynamic_path( $path ){
 		foreach( $this->sitemap_dynamic_paths as $sitemap_dynamic_path ){
@@ -564,7 +718,10 @@ class px_cores_site{
 	}
 
 	/**
-	 * ダイナミックパス情報を得る
+	 * ダイナミックパス情報を得る。
+	 * 
+	 * @param string $path 対象のパス
+	 * @return string|bool 見つかった場合に、ダイナミックパスを、見つからない場合に `false` を返します。
 	 */
 	public function get_dynamic_path_info( $path ){
 		foreach( $this->sitemap_dynamic_paths as $sitemap_dynamic_path ){
@@ -580,7 +737,11 @@ class px_cores_site{
 	}
 
 	/**
-	 * ダイナミックパスに値をバインドする
+	 * ダイナミックパスに値をバインドする。
+	 *
+	 * @param string $dynamic_path ダイナミックパス文字列
+	 * @param array $params パラメータを格納する連想配列
+	 * @return string パラメータをバインドして完成したパス
 	 */
 	public function bind_dynamic_path_param( $dynamic_path , $params = array() ){
 		$path = '';
@@ -606,19 +767,51 @@ class px_cores_site{
 	}//bind_dynamic_path_param()
 
 	/**
-	 * 子階層のページの一覧を取得する
-	 * @param $path
+	 * 子階層のページの一覧を取得する。
+	 * 
+	 * このメソッドは、指定したページの子階層のページの一覧を返します。`$path` を省略した場合は、カレントページのパスを起点に一覧を抽出します。
+	 * 
+	 * カレントページの子階層のリンクを作成する例 :
+	 * <pre>&lt;?php
+	 * // カレントページの子階層のリンクを作成する
+	 * $children = $px-&gt;site()-&gt;get_children();
+	 * print '&lt;ul&gt;';
+	 * foreach( $children as $child ){
+	 * 	print '&lt;li&gt;'.$px-&gt;theme()-&gt;mk_link($child).'&lt;/li&gt;';
+	 * }
+	 * print '&lt;/ul&gt;';
+	 * ?&gt;</pre>
+	 * 
+	 * カレントページの子階層のリンクを、list_flg を無視してすべて表示する例 :
+	 * <pre>&lt;?php
+	 * // カレントページの子階層のリンクを作成する
+	 * // (list_flg を無視してすべて表示する)
+	 * $children = $px-&gt;site()-&gt;get_children(null, array('filter'=&gt;false));
+	 * print '&lt;ul&gt;';
+	 * foreach( $children as $child ){
+	 * 	print '&lt;li&gt;'.$px-&gt;theme()-&gt;mk_link($child).'&lt;/li&gt;';
+	 * }
+	 * print '&lt;/ul&gt;';
+	 * ?&gt;</pre>
+	 * 
+	 * @param string $path 起点とするページのパス または ページID。省略時、カレントページから自動的に取得します。
+	 * @param array $opt オプション(省略可)
+	 * <dl>
+	 *   <dt>$opt['filter'] (初期値: `true`)</dt>
+	 *     <dd>フィルターの有効/無効を切り替えます。`true` のとき有効、`false`のとき無効となります。フィルターが有効な場合、サイトマップで `list_flg` が `0` のページが一覧から除外されます。</dd>
+	 * </dl>
+	 * @return array ページの一覧
 	 */
 	public function get_children( $path = null, $opt = array() ){
 		if( is_null( $path ) ){
 			$path = $this->px->req()->get_request_file_path();
 		}
 		$filter = true;
-		if(!is_null($opt['filter'])){ $filter = !empty($opt['filter']); }
+		if(!is_null(@$opt['filter'])){ $filter = !empty($opt['filter']); }
 
 		$page_info = $this->get_page_info( $path );
 
-		if( $filter && is_array( $this->sitemap_page_tree[$page_info['path']]['children'] ) ){
+		if( $filter && is_array( @$this->sitemap_page_tree[$page_info['path']]['children'] ) ){
 			//  ページキャッシュツリーがすでに作られている場合
 			return $this->sitemap_page_tree[$page_info['path']]['children'];
 		}
@@ -629,65 +822,84 @@ class px_cores_site{
 
 		$tmp_children_orderby_manual = array();
 		$tmp_children_orderby_auto = array();
+		$tmp_children_orderby_listed_manual = array();
+		$tmp_children_orderby_listed_auto = array();
 
-		$current_layer = '';
-		if( strlen( trim($page_info['id']) ) ){
-			$tmp_breadcrumb = explode( '>', $page_info['logical_path'].'>'.$page_info['id'] );
-			foreach( $tmp_breadcrumb as $tmp_path ){
-				if( !strlen($tmp_path) ){continue;}
-				$tmp_page_info = $this->get_page_info( trim($tmp_path) );
-				$current_layer .= '>'.$tmp_page_info['id'];
-			}
-		}
-		unset($tmp_breadcrumb,$tmp_path,$tmp_page_info);
+		// $current_layer = '';
+		// if( strlen( trim($page_info['id']) ) ){
+		// 	$tmp_breadcrumb = explode( '>', $page_info['logical_path'].'>'.$page_info['id'] );
+		// 	foreach( $tmp_breadcrumb as $tmp_path ){
+		// 		if( !strlen($tmp_path) ){continue;}
+		// 		$tmp_page_info = $this->get_page_info( trim($tmp_path) );
+		// 		$current_layer .= '>'.$tmp_page_info['id'];
+		// 	}
+		// }
+		// unset($tmp_breadcrumb,$tmp_path,$tmp_page_info);
 
 		foreach( $this->get_sitemap() as $row ){
 			if( !strlen($row['id']) ){
 				continue;
 			}
-			if($filter){
-				if( !$row['list_flg'] ){
-					continue;
-				}
-			}
+			// if($filter){
+			// 	if( !$row['list_flg'] ){
+			// 		continue;
+			// 	}
+			// }
 
-			$target_layer = '';
+			// $target_layer = '';
+			$parent_page_id = '';
 			if( strlen( trim($row['id']) ) ){
 				$tmp_breadcrumb = explode( '>', $row['logical_path'] );
-				foreach( $tmp_breadcrumb as $tmp_path ){
-					if( !strlen($tmp_path) ){continue;}
-					$tmp_page_info = $this->get_page_info( trim($tmp_path) );
-					$target_layer .= '>'.$tmp_page_info['id'];
-				}
-				unset($tmp_breadcrumb,$tmp_path,$tmp_page_info);
-			}
+				$tmp_page_info = $this->get_page_info( trim($tmp_breadcrumb[count($tmp_breadcrumb)-1]) );
+				$parent_page_id = trim($tmp_page_info['id']);
 
-			if( $current_layer == $target_layer ){
+				// foreach( $tmp_breadcrumb as $tmp_path ){
+				// 	if( !strlen($tmp_path) ){continue;}
+				// 	$tmp_page_info = $this->get_page_info( trim($tmp_path) );
+				// 	$target_layer .= '>'.$tmp_page_info['id'];
+				// }
+			}
+			unset($tmp_breadcrumb,$tmp_path,$tmp_page_info);
+
+			if( $page_info['id'] == $parent_page_id ){
 				if(strlen($row['orderby'])){
 					array_push( $tmp_children_orderby_manual , $row['id'] );
 				}else{
 					array_push( $tmp_children_orderby_auto , $row['id'] );
 				}
+				if( $row['list_flg'] ){
+					if(strlen($row['orderby'])){
+						array_push( $tmp_children_orderby_listed_manual , $row['id'] );
+					}else{
+						array_push( $tmp_children_orderby_listed_auto , $row['id'] );
+					}
+				}
 			}
 		}
 
-		usort( $tmp_children_orderby_manual , array( $this , 'usort_sitemap' ) );
-		$rtn = array_merge( $tmp_children_orderby_manual , $tmp_children_orderby_auto );
-
 		//  ページキャッシュを作成しなおす
+		usort( $tmp_children_orderby_listed_manual , array( $this , 'usort_sitemap' ) );
+		$this->sitemap_page_tree[$page_info['path']]['children'] = array_merge( $tmp_children_orderby_listed_manual , $tmp_children_orderby_listed_auto );
+		usort( $tmp_children_orderby_manual , array( $this , 'usort_sitemap' ) );
+		$this->sitemap_page_tree[$page_info['path']]['children_all'] = array_merge( $tmp_children_orderby_manual , $tmp_children_orderby_auto );
+
+		//  return value
+		$rtn = null;
 		if($filter){
-			$this->sitemap_page_tree[$page_info['path']]['children'] = $rtn;
+			$rtn = $this->sitemap_page_tree[$page_info['path']]['children'];
 		}else{
-			$this->sitemap_page_tree[$page_info['path']]['children_all'] = $rtn;
+			$rtn = $this->sitemap_page_tree[$page_info['path']]['children_all'];
 		}
 
 		return $rtn;
 	}//get_children()
 
 	/**
-	 * ページ情報の配列を並び替える
-	 * @param 比較対象1のページID
-	 * @param 比較対象2のページID
+	 * ページ情報の配列を並び替える。
+	 * 
+	 * @param string $a 比較対象1のページID
+	 * @param string $b 比較対象2のページID
+	 * @return int 並び順の前後関係 (`1`|`0`|`-1`)
 	 */
 	private function usort_sitemap( $a , $b ){
 		$page_info_a = $this->get_page_info( $a );
@@ -707,8 +919,11 @@ class px_cores_site{
 	}//usort_sitemap()
 
 	/**
-	 * 同じ階層のページの一覧を取得する
-	 * @param $path
+	 * 同じ階層のページの一覧を取得する。
+	 * 
+	 * @param string $path 起点とするページのパス または ページID。省略時、カレントページから自動的に取得します。
+	 * @param array $opt オプション(省略可)
+	 * @return array ページの一覧
 	 */
 	public function get_bros( $path = null, $opt = array() ){
 		if( is_null( $path ) ){
@@ -725,8 +940,11 @@ class px_cores_site{
 	}//get_bros()
 
 	/**
-	 * 同じ階層の次のページのIDを取得する
-	 * @param $path
+	 * 同じ階層の次のページのIDを取得する。
+	 * 
+	 * @param string $path 起点とするページのパス または ページID。省略時、カレントページから自動的に取得します。
+	 * @param array $opt オプション(省略可)
+	 * @return string|bool ページID。存在しない場合は `false`を返します。
 	 */
 	public function get_bros_next( $path = null, $opt = array() ){
 		if( is_null( $path ) ){
@@ -759,8 +977,11 @@ class px_cores_site{
 	}//get_bros_next()
 
 	/**
-	 * 同じ階層の前のページのIDを取得する
-	 * @param $path
+	 * 同じ階層の前のページのIDを取得する。
+	 * 
+	 * @param string $path 起点とするページのパス または ページID。省略時、カレントページから自動的に取得します。
+	 * @param array $opt オプション(省略可)
+	 * @return string|bool ページID。存在しない場合は `false`を返します。
 	 */
 	public function get_bros_prev( $path = null, $opt = array() ){
 		if( is_null( $path ) ){
@@ -794,6 +1015,10 @@ class px_cores_site{
 
 	/**
 	 * 次のページのIDを取得する。
+	 * 
+	 * @param string $path 起点とするページのパス または ページID。省略時、カレントページから自動的に取得します。
+	 * @param array $opt オプション(省略可)
+	 * @return string|bool ページID。存在しない場合は `false`を返します。
 	 */
 	public function get_next( $path = null, $opt = array() ){
 		if( is_null( $path ) ){
@@ -834,6 +1059,10 @@ class px_cores_site{
 
 	/**
 	 * 前のページのIDを取得する。
+	 * 
+	 * @param string $path 起点とするページのパス または ページID。省略時、カレントページから自動的に取得します。
+	 * @param array $opt オプション(省略可)
+	 * @return string|bool ページID。存在しない場合は `false`を返します。
 	 */
 	public function get_prev( $path = null, $opt = array() ){
 		if( is_null( $path ) ){
@@ -867,9 +1096,10 @@ class px_cores_site{
 	}
 
 	/**
-	 * パンくず配列を取得する
-	 * @param $path = 基点とするページのパス、またはID。(省略時カレントページ)
-	 * @return 親ページまでのパンくず階層をあらわす配列。自身を含まない。$pathがトップページを示す場合は、空の配列。
+	 * パンくず配列を取得する。
+	 * 
+	 * @param string $path 起点とするページのパス または ページID。省略時、カレントページから自動的に取得します。
+	 * @return array 親ページまでのパンくず階層をあらわす配列。自身を含まない。$pathがトップページを示す場合は、空の配列。
 	 */
 	public function get_breadcrumb_array( $path = null ){
 		if( is_null( $path ) ){
@@ -890,9 +1120,11 @@ class px_cores_site{
 	}//get_breadcrumb_array()
 
 	/**
-	 * ページが、パンくず内に存在しているか調べる
-	 * @param $page_path = 調べる対象のページのパス、またはID。
-	 * @param $path = 基点とするページのパス、またはID。(省略時カレントページ)
+	 * ページが、パンくず内に存在しているか調べる。
+	 * 
+	 * @param string $page_path 調べる対象のページのパス、またはID。
+	 * @param string $path 起点とするページのパス または ページID。省略時、カレントページから自動的に取得します。
+	 * @return bool 存在している場合に `true`、存在しない場合に `false` を返します。
 	 */
 	public function is_page_in_breadcrumb( $page_path, $path = null ){
 		if( is_null($path) ){
@@ -914,12 +1146,16 @@ class px_cores_site{
 
 	/**
 	 * パス文字列を受け取り、種類を判定する。
-	 * alias: から始まる場合 => 'alias'
-	 * {$xxxx} を含む場合 => 'dynamic'
-	 * / から始まる場合 => 'normal'
-	 * どれにも当てはまらない不明な形式の場合に、falseを返す。
 	 * 
-	 * @param $path
+	 * @param string $path 調べるパス
+	 * @return string|bool 判定結果。
+	 * - `javascript:` から始まる場合 => 'javascript'
+	 * - `#:` から始まる場合 => 'anchor'
+	 * - `http://` などURLスキーマ名から始まる場合 => 'full_url'
+	 * - その他で `alias:` から始まる場合 => 'alias'
+	 * - `{$xxxx}` または `{*xxxx}` を含む場合 => 'dynamic'
+	 * - `/` から始まる場合 => 'normal'
+	 * - どれにも当てはまらない不明な形式の場合に、`false` を返します。
 	 */
 	public function get_path_type( $path ) {
 		if( preg_match( '/^(?:alias[0-9]*\:)?javascript\:/i' , $path ) ) {
@@ -944,7 +1180,7 @@ class px_cores_site{
 			//  このため、数字が含まれている場合を考慮した。(@tomk79)
 			$path_type = 'alias';
 		} else if( preg_match( '/\{(?:\$|\*)(?:[a-zA-Z0-9\_\-]*)\}/' , $path ) ) {
-			//  {$xxxx}を含む場合(ダイナミックパス)
+			//  {$xxxx} または {*xxxx} を含む場合(ダイナミックパス)
 			$path_type = 'dynamic';
 		} else if( preg_match( '/^\//' , $path ) ) {
 			//  /から始まる場合

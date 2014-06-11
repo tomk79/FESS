@@ -1,12 +1,24 @@
 <?php
+/**
+ * class px_pxcommands_themes
+ * 
+ * @author Tomoya Koyanagi <tomk79@gmail.com>
+ */
 $this->load_px_class('/bases/pxcommand.php');
 
 /**
  * PX Command: themesを表示する
- **/
+ * 
+ * @author Tomoya Koyanagi <tomk79@gmail.com>
+ */
 class px_pxcommands_themes extends px_bases_pxcommand{
-	private $config_ary = array();
 
+	/**
+	 * コンストラクタ
+	 * 
+	 * @param array $command PXコマンド名
+	 * @param object $px $pxオブジェクト
+	 */
 	public function __construct( $command , $px ){
 		parent::__construct( $command , $px );
 		$this->execute();
@@ -14,6 +26,10 @@ class px_pxcommands_themes extends px_bases_pxcommand{
 
 	/**
 	 * Execute PX Command "config".
+	 * 
+	 * HTMLを標準出力した後、`exit()` を発行してスクリプトを終了します。
+	 * 
+	 * @return void
 	 */
 	private function execute(){
 		$src = '';
@@ -40,7 +56,7 @@ class px_pxcommands_themes extends px_bases_pxcommand{
 			$src .= '	</thead>'."\n";
 			foreach( $theme_id_list as $theme_id ){
 				$src .= '	<tr>'."\n";
-				$src .= '		<th style="word-break:break-all;">'.($current_theme_id==$theme_id?'<span class="current">'.t::h($theme_id).'</span>':'<a href="?THEME='.t::h($theme_id).'">'.t::h($theme_id).'</a>').'</th>'."\n";
+				$src .= '		<th style="word-break:break-all;">'.($this->px->get_conf('system.default_theme_id')==$theme_id?'* ':'').($current_theme_id==$theme_id?'<span class="current">'.t::h($theme_id).'</span>':'<a href="?THEME='.t::h($theme_id).'">'.t::h($theme_id).'</a>').'</th>'."\n";
 				$src .= '		<td style="word-break:break-all;">'."\n";
 				$outline_list = $this->px->dbh()->ls( $this->px->get_conf('paths.px_dir').'themes/'.$theme_id.'/' );
 				foreach( $outline_list as $number=>$filename ){
@@ -65,7 +81,7 @@ class px_pxcommands_themes extends px_bases_pxcommand{
 
 		print $this->html_template($src);
 		exit;
-	}
+	}//execute()
 
 }
 

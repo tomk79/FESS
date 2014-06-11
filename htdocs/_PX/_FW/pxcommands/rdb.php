@@ -1,20 +1,35 @@
 <?php
+/**
+ * class px_pxcommands_rdb
+ * 
+ * @author Tomoya Koyanagi <tomk79@gmail.com>
+ */
 $this->load_px_class('/bases/pxcommand.php');
 
 /**
  * PX Command: rdbを表示する
- **/
+ * 
+ * @author Tomoya Koyanagi <tomk79@gmail.com>
+ */
 class px_pxcommands_rdb extends px_bases_pxcommand{
 
+	/**
+	 * PXコマンド名
+	 */
 	private $command = array();
-	private $pageinfo = null;
 
+	/**
+	 * コンストラクタ
+	 * 
+	 * @param array $command PXコマンド名
+	 * @param object $px $pxオブジェクト
+	 */
 	public function __construct( $command , $px ){
 		parent::__construct( $command , $px );
 
-		$this->command = $command;
+		$this->command = $this->get_command();
 
-		switch( $command[1] ){
+		switch( @$command[1] ){
 			case 'exec_sql':
 				$this->execute_exec_sql();
 				break;
@@ -29,6 +44,10 @@ class px_pxcommands_rdb extends px_bases_pxcommand{
 
 	/**
 	 * ホーム画面を表示する。
+	 * 
+	 * HTMLを標準出力した後、`exit()` を発行してスクリプトを終了します。
+	 * 
+	 * @return void
 	 */
 	private function home(){
 
@@ -80,6 +99,12 @@ var contSql = new (function(formElm){
 			} ,
 			success: function( data ){
 				// if(console){console.debug(data);}
+				function h(text){
+					text = text.replace(new RegExp('<','g'), '&lt;');
+					text = text.replace(new RegExp('>','g'), '&gt;');
+					text = text.replace(new RegExp('"','g'), '&quot;');
+					return text;
+				}
 				var SRC = '';
 				if( data.value === false ){
 					SRC += '<p class="center">検索エラー。検索結果に false を受け取りました。</p>';
@@ -89,7 +114,7 @@ var contSql = new (function(formElm){
 					SRC += '<tr>';
 					for(var key2 in data.define){
 						SRC += '<th style="word-break:break-all;">';
-						SRC += data.define[key2];
+						SRC += h( data.define[key2] );
 						SRC += '</th>';
 					}
 					if(data.sql=='\\d'){
@@ -101,7 +126,11 @@ var contSql = new (function(formElm){
 							SRC += '<tr>';
 							for(var key2 in data.value[key1]){
 								SRC += '<td>';
-								SRC += data.value[key1][key2];
+								if( data.value[key1][key2] === null ){
+									SRC += '<span style="color:#00f; font-style:italic;">null</span>';
+								}else{
+									SRC += h( data.value[key1][key2] );
+								}
 								SRC += '</td>';
 							}
 							if(data.sql=='\\d'){
@@ -135,6 +164,14 @@ var contSql = new (function(formElm){
 
 	/**
 	 * SQLを実行する。
+	 * 
+	 * `$command[1]` が `exec_sql` の場合に実行されます。
+	 * 
+	 * パラメータ `sql` に受け取ったSQL文を実行し、`$command[2]` が `json` の場合は結果をJSON形式で出力、それ以外の場合は結果ページへリダイレクトします。
+	 * 
+	 * `exit()` を発行してスクリプトを終了します。
+	 * 
+	 * @return void
 	 */
 	private function execute_exec_sql(){
 		$sql = $this->px->req()->get_param('sql');
@@ -185,6 +222,12 @@ var contSql = new (function(formElm){
 
 	/**
 	 * 上書き完了画面を表示する。
+	 * 
+	 * `$command[1]` が `result` の場合に実行されます。
+	 * 
+	 * HTMLを標準出力した後、`exit()` を発行してスクリプトを終了します。
+	 * 
+	 * @return void
 	 */
 	private function execute_result(){
 

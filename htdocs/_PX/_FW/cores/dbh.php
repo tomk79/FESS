@@ -1,6 +1,21 @@
 <?php
 /**
+ * class px_cores_dbh
+ * 
+ * PxFWのコアオブジェクトの1つ `$dbh` のオブジェクトクラスを定義します。
+ * 
+ * @author Tomoya Koyanagi <tomk79@gmail.com>
+ */
+/**
  * PxFW core object class: Database Handler
+ * 
+ * PxFWのコアオブジェクトの1つ `$dbh` のオブジェクトクラスです。
+ * このオブジェクトは、PxFWの初期化処理の中で自動的に生成され、`$px` の内部に格納されます。
+ * 
+ * メソッド `$px->dbh()` を通じてアクセスします。
+ * 
+ * シンプルなファイル(例えばCSVやJSON、XMLなど)もデータとして捉えれば、データベースハンドラはファイル操作機能も持っているべきという考えから、
+ * PxFWの `$dbh` は、データベース管理システムの操作機能の他に、ファイルやディレクトリを操作する機能も備えるようになりました。
  * 
  * @author Tomoya Koyanagi <tomk79@gmail.com>
  */
@@ -11,29 +26,71 @@ class px_cores_dbh{
 	//  パス処理系メソッド：path_operators
 	//  その他：allabout_others
 
+	/**
+	 * $pxオブジェクト
+	 */
 	private $px;
 
+	/**
+	 * 自動トランザクション設定
+	 */
 	private $auto_transaction_flg = false;
-		#	自動トランザクション設定
+	/**
+	 * 自動コミット設定
+	 */
 	private $auto_commit_flg = false;
-		#	自動コミット設定
+	/**
+	 * 接続に挑戦する回数
+	 */
 	private $try2connect_count = 1;
-		#	接続に挑戦する回数
 
-	private $connection = null;			#	データベースとのコネクション(PDOを使用する場合は、PDOオブジェクト)
-	private $errorlist = array();		#	エラーリスト
-	private $result = null;				#	RDBクエリの実行結果リソース(PDOを使用する場合は、PDOStatementオブジェクト)
-	private $transaction_flg = false;	#	トランザクションフラグ
-	private $file = array();			#	ファイルオープンリソースのリスト
+	/**
+	 * データベースとのコネクション
+	 * 
+	 * PDOを使用する場合は、PDOオブジェクト。
+	 */
+	private $connection = null;
+	/**
+	 * エラーリスト
+	 */
+	private $errorlist = array();
+	/**
+	 * RDBクエリの実行結果リソース
+	 * 
+	 * PDOを使用する場合は、PDOStatementオブジェクト。
+	 */
+	private $result = null;
+	/**
+	 * トランザクションフラグ
+	 */
+	private $transaction_flg = false;
+	/**
+	 * ファイルオープンリソースのリスト
+	 */
+	private $file = array();
 
-	private $slow_query_limit = 0.5;	#	Slow Queryと判断されるまでの時間。
+	/**
+	 * Slow Queryと判断されるまでの時間
+	 */
+	private $slow_query_limit = 0.5;
 
+	/**
+	 * コールバックメソッド
+	 */
 	private $method_eventhdl_connection_error;
+	/**
+	 * コールバックメソッド
+	 */
 	private $method_eventhdl_query_error;
-		#	↑コールバックメソッド
 
+	/**
+	 * ファイルおよびディレクトリ操作時のデフォルトパーミッション
+	 */
 	private $default_permission = array('dir'=>0775,'file'=>0775);
 
+	/**
+	 * データベース設定
+	 */
 	private $db_conf = array(
 		'dbms'=>null ,           //RDBMSの種類。mysql|postgresql|sqlite
 		'host'=>null ,           //接続先ホスト名
@@ -46,6 +103,8 @@ class px_cores_dbh{
 
 	/**
 	 * コンストラクタ
+	 * 
+	 * @param object $px $pxオブジェクト
 	 */
 	public function __construct( $px ){
 		$this->px = $px;
@@ -64,6 +123,26 @@ class px_cores_dbh{
 
 	/**
 	 * データベースを設定する。
+	 *
+	 * @param array $db_conf 設定内容を格納した連想配列
+	 * <dl>
+	 *   <dt>$db_conf['dbms']</dt>
+	 *     <dd>DBMS名(mysql|postgresql|sqlite)</dd>
+	 *   <dt>$db_conf['host']</dt>
+	 *     <dd>DBサーバーのホスト名</dd>
+	 *   <dt>$db_conf['port']</dt>
+	 *     <dd>ポート番号</dd>
+	 *   <dt>$db_conf['database_name']</dt>
+	 *     <dd>データベーススキーマ名</dd>
+	 *   <dt>$db_conf['user']</dt>
+	 *     <dd>ユーザー名</dd>
+	 *   <dt>$db_conf['password']</dt>
+	 *     <dd>パスワード</dd>
+	 *   <dt>$db_conf['charset']</dt>
+	 *     <dd>文字セット</dd>
+	 * </dl>
+	 * 
+	 * @return bool 常に `true`
 	 */
 	public function set_db_conf( $db_conf ){
 		foreach( $db_conf as $key=>$val ){
@@ -74,13 +153,19 @@ class px_cores_dbh{
 
 	/**
 	 * データベース設定取り出す。
+	 *
+	 * @param string $key 設定項目名
+	 * @return string 設定値
 	 */
 	public function get_db_conf( $key ){
+		if( !array_key_exists($key, $this->db_conf) ){ return null; }
 		return $this->db_conf[$key];
-	}
+	}//get_db_conf()
 
 	/**
-	 * データベースに接続する
+	 * データベースに接続する。
+	 * 
+	 * @return bool 接続が成功した場合、既に確立された接続がある場合に `true`、接続に失敗した場合に `false` を返します。
 	 */
 	public function connect(){
 		if( $this->check_connection() ){ return true; }
@@ -210,7 +295,12 @@ class px_cores_dbh{
 	}//connect()
 
 	/**
-	 * すでに確立されたデータベース接続情報を外部から受け入れる
+	 * すでに確立されたデータベース接続情報を外部から受け入れる。
+	 * 
+	 * 既に内部で接続が確立している場合は、受け入れが失敗し、`false` を返します。
+	 *
+	 * @param resource $con 接続リソース
+	 * @return 受け入れられた場合に `true`、受け入れられなかった場合に `false` を返します。
 	 */
 	public function set_connection( $con ){
 		if( $this->check_connection() ){
@@ -223,7 +313,10 @@ class px_cores_dbh{
 	}
 
 	/**
-	 * データベースコネクション$conが有効かどうか確認
+	 * データベースコネクション$conが有効かどうか確認する。
+	 * 
+	 * @param resource $con データベースコネクション(省略時はオブジェクト内部のconnectionプロパティで調べる)
+	 * @return bool 接続が有効な場合に `true`、無効な場合に `false` を返します。
 	 */
 	public function check_connection( $con = null ){
 		if( !is_resource( $con ) && !is_object( $con ) ){
@@ -266,17 +359,19 @@ class px_cores_dbh{
 	}//check_connection()
 
 	/**
-	 * 直前のクエリで処理された件数を得る
+	 * 直前のクエリで処理された件数を得る。
 	 * 
 	 * MySQLとPostgreSQLでは、渡すべきリソース $res の種類が異なります。
 	 * MySQLには接続リソース、PostgreSQLには、前回のクエリの実行結果リソースを渡します。
 	 * 
-	 * PostgreSQLの場合には、前回のクエリの実行時に記憶した結果リソース $this->result を自動的に適用します。
+	 * PostgreSQLの場合には、前回のクエリの実行時に記憶した結果リソース `$this->result` を自動的に適用します。
 	 * 
-	 * このため、基本的に、引数$resは指定しないで使うことを想定しています。
+	 * このため、基本的に、引数 `$res` は指定しないで使うことを想定しています。
 	 * 
-	 * 明示的に$resを指定する場合は、呼び出し元側でデータベースの種類に応じた判断がされている必要があります。
+	 * 明示的に `$res` を指定する場合は、呼び出し元側でデータベースの種類に応じた判断がされている必要があります。
 	 * 
+	 * @param resource|object $res 接続リソース(MySQL、SQLite)、またはリクエスト結果リソース(PostgreSQL)。省略時は自動的に処理する。
+	 * @return int 処理された件数
 	 */
 	public function get_affected_rows( $res = null ){
 		if( !is_null( $res ) && !is_resource( $res ) && !is_object( $res ) ){
@@ -325,7 +420,9 @@ class px_cores_dbh{
 	}//get_affected_rows()
 
 	/**
-	 * トランザクションを開始する
+	 * トランザクションを開始する。
+	 * 
+	 * @return bool|null トランザクションが成功したら `true`、失敗したら `false`、前回のトランザクション中なら `null` を返します。
 	 */
 	public function start_transaction(){
 		$this->connect();
@@ -348,7 +445,10 @@ class px_cores_dbh{
 	}
 
 	/**
-	 * トランザクション：コミット
+	 * トランザクション：コミットする。
+	 *
+	 * @return 成功したら `true`、失敗したら `false` を返します。
+	 * トランザクションが開始されていない場合は、`true` を返します。
 	 */
 	public function commit(){
 		$this->connect();
@@ -369,7 +469,10 @@ class px_cores_dbh{
 	}
 
 	/**
-	 * トランザクション：ロールバック
+	 * トランザクション：ロールバックする。
+	 *
+	 * @return 成功したら `true`、失敗したら `false` を返します。
+	 * トランザクションが開始されていない場合は、`true` を返します。
 	 */
 	public function rollback(){
 		$this->connect();
@@ -391,13 +494,18 @@ class px_cores_dbh{
 
 	/**
 	 * トランザクション：トランザクション中かどうか返す
+	 *
+	 * @return トランザクション中なら `true`、それ以外なら `false` を返します。
 	 */
 	public function is_transaction(){
 		return	$this->transaction_flg;
 	}
 
 	/**
-	 * データベースにクエリを送る
+	 * データベースにクエリを送る。
+	 * 
+	 * @param string $querystring SQL文
+	 * @return mixed クエリ送信に失敗した場合は `false` を返します。成功した場合は、リソースまたはオブジェクトを返します(使用するDBMSによって異なります)。
 	 */
 	public function &send_query( $querystring ){
 		if( !is_string( $querystring ) ){ return false; }
@@ -406,11 +514,14 @@ class px_cores_dbh{
 			$this->start_transaction();
 		}
 		$this->result = $this->execute_send_query( $querystring );
-		return	$this->result;
+		return $this->result;
 	}//send_query()
 	
 	/**
 	 * 実際にクエリを送信する
+	 * 
+	 * @param string $querystring SQL文
+	 * @return mixed クエリ送信に失敗した場合は `false` を返します。成功した場合は、リソースまたはオブジェクトを返します(使用するDBMSによって異なります)。
 	 */
 	private function &execute_send_query( $querystring ){
 		$this->connect();
@@ -487,7 +598,11 @@ class px_cores_dbh{
 	}
 
 	/**
-	 * SQL文に値をバインドする
+	 * SQL文に値をバインドする。
+	 * 
+	 * @param string $sql SQLテンプレート
+	 * @param array $vars バインドする値とキーの一覧
+	 * @return string 完成されたSQL
 	 */
 	public function bind( $sql , $vars = array() ){
 		#	数値型の場合 => :N:key
@@ -547,7 +662,10 @@ class px_cores_dbh{
 	}//bind()
 
 	/**
-	 * クエリの実行結果を得る
+	 * クエリの実行結果を得る。
+	 * 
+	 * @param resource|object $res 接続リソース、またはクエリ実行リソース
+	 * @return array 取得された行列データ
 	 */
 	public function get_results( $res = null ){
 		$RTN = array();
@@ -584,7 +702,10 @@ class px_cores_dbh{
 	}//get_results()
 
 	/**
-	 * クエリの実行結果を1行ずつ得る
+	 * クエリの実行結果を1行ずつ得る。
+	 * 
+	 * @param resource|object $res 接続リソース、またはクエリ実行リソース
+	 * @return array 取得された1行分の行列データ
 	 */
 	public function fetch_assoc( $res = null ){
 		$RTN = array();
@@ -620,7 +741,9 @@ class px_cores_dbh{
 	}
 
 	/**
-	 * 直前のクエリのエラー報告を受ける
+	 * 直前のクエリのエラー報告を受けとる。
+	 * 
+	 * @return array エラー情報を格納した連想配列
 	 */
 	public function get_sql_error(){
 		if( class_exists('PDO') ){
@@ -662,7 +785,11 @@ class px_cores_dbh{
 	}
 
 	/**
-	 * 直前のクエリ(INSERT)で挿入されたレコードのIDを得る
+	 * 直前のクエリ(INSERT)で挿入されたレコードのIDを得る。
+	 * 
+	 * @param resource|object $res 接続リソース、またはクエリ実行リソース
+	 * @param string $seq_table_name 直前のクエリで挿入処理を行ったテーブルのテーブル名(PostgreSQLの場合のみ必要)
+	 * @return array 取得された1行分の行列データ
 	 */
 	public function get_last_insert_id( $res = null , $seq_table_name = null ){
 		#--------------------------------------
@@ -720,7 +847,9 @@ class px_cores_dbh{
 	#	その他DB関連
 
 	/**
-	 * データベースの文字エンコードタイプを取得
+	 * データベースの文字エンコードタイプを取得する。
+	 * 
+	 * @return string|bool 取得された文字エンコード名。失敗した場合に `false` を返します。
 	 */
 	public function get_db_encoding(){
 		$this->connect();
@@ -753,7 +882,10 @@ class px_cores_dbh{
 	}
 
 	/**
-	 * エンコーディング名の形式をDBの呼び方からPHPの呼び方に変換
+	 * 文字セット名の形式をDBの呼び方からPHPの呼び方に変換する。
+	 * 
+	 * @param string $db_encoding DBMSで使用する文字セット名
+	 * @return string PHPで使用される文字セット名
 	 */
 	public function translate_encoding_db2php( $db_encoding ){
 		$db_encoding = strtolower( $db_encoding );
@@ -771,7 +903,10 @@ class px_cores_dbh{
 		return	$db_encoding;
 	}
 	/**
-	 * エンコーディング名の形式をPHPの呼び方からDBの呼び方に変換
+	 * 文字セット名の形式をPHPの呼び方からDBの呼び方に変換する。
+	 * 
+	 * @param string $php_encoding PHPで使用する文字セット名
+	 * @return string DBMSで使用される文字セット名
 	 */
 	public function translate_encoding_php2db( $php_encoding ){
 		$php_encoding = strtolower( $php_encoding );
@@ -792,7 +927,10 @@ class px_cores_dbh{
 	}
 
 	/**
-	 * テーブルの一覧を得る
+	 * テーブルの一覧を得る。
+	 * 
+	 * @param string $dbname データベース名
+	 * @return array|bool テーブル名を格納した配列を返します。失敗時には `false` を返します。
 	 */
 	public function get_tablelist( $dbname = null ){
 		if( !$dbname ){ $dbname = $this->get_db_conf('database_name'); }
@@ -864,7 +1002,10 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 	}
 
 	/**
-	 * テーブルの定義を知る
+	 * テーブルの定義を知る。
+	 *
+	 * @param string $tablename 調べる対象のテーブル名
+	 * @return array|bool 成功時、テーブルの定義を格納した連想配列、失敗時 `false` を返します。
 	 */
 	public function get_table_definition( $tablename ){
 		$this->connect();
@@ -936,7 +1077,10 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 	}
 
 	/**
-	 * date型の値を、time()形式に変換
+	 * date型の値を、UNIXタイムスタンプに変換する。
+	 * 
+	 * @param string $time date型(YYYY-MM-DD) または datetime型(YYYY-MM-DD HH:ii:ss) の文字列
+	 * @return int `$time` が示す日の0時0分0秒のUNIXタイムスタンプ
 	 */
 	public function date2int( $time ){
 		if( !preg_match( '/^([0-9]+)-([0-9]+)-([0-9]+)(?: (?:[0-9]+):(?:[0-9]+):(?:[0-9]+))?$/' , $time , $res ) ){
@@ -945,7 +1089,10 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 		return	mktime( 0 , 0 , 0 , intval($res[2]) , intval($res[3]) , intval($res[1]) );
 	}
 	/**
-	 * datetime型の値を、time()形式に変換
+	 * datetime型の値を、UNIXタイムスタンプに変換する。
+	 * 
+	 * @param string $time date型(YYYY-MM-DD) または datetime型(YYYY-MM-DD HH:ii:ss) の文字列
+	 * @return int `$time` が示す時刻のUNIXタイムスタンプ
 	 */
 	public function datetime2int( $time ){
 		#	このメソッドは、PostgreSQLのtimestamp型文字列を吸収します。
@@ -955,13 +1102,19 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 		return	mktime( intval($res[4]) , intval($res[5]) , intval($res[6]) , intval($res[2]) , intval($res[3]) , intval($res[1]) );
 	}
 	/**
-	 * time()形式の値を、date型に変換
+	 * UNIXタイムスタンプの値を、date型に変換
+	 * 
+	 * @param int $time UNIXタイムスタンプ
+	 * @return string date型(YYYY-MM-DD)の文字列
 	 */
 	public function int2date( $time ){
 		return	date( 'Y-m-d' , $time );
 	}
 	/**
-	 * time()形式の値を、datetime型に変換
+	 * UNIXタイムスタンプの値を、datetime型に変換
+	 * 
+	 * @param int $time UNIXタイムスタンプ
+	 * @return string datetime型(YYYY-MM-DD HH:ii:ss) の文字列
 	 */
 	public function int2datetime( $time ){
 		return	date( 'Y-m-d H:i:s' , $time );
@@ -970,6 +1123,11 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 
 	/**
 	 * DBコネクションに失敗した時に実行されるメソッド
+	 *
+	 * @param string $errorMessage エラーメッセージ
+	 * @param string $FILE エラーが発生したファイル
+	 * @param int $LINE エラーが発生した行番号
+	 * @return bool コールバック関数が利用可能な場合、その関数の返却値を返します。コールバック関数が登録されない場合、何もせずに `true` を返します。
 	 */
 	private function eventhdl_connection_error( $errorMessage = null , $FILE = null , $LINE = null ){
 		$method = $this->method_eventhdl_connection_error;
@@ -990,6 +1148,9 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 	}
 	/**
 	 * DBコネクション失敗時のイベントハンドラをセットする。
+	 * 
+	 * @param mixed $method コールバック関数
+	 * @return bool 常に `true` を返します。
 	 */
 	public function set_eventhdl_connection_error( $method ){
 		$this->method_eventhdl_connection_error = $method;
@@ -998,6 +1159,11 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 
 	/**
 	 * SQLエラー時に実行されるメソッド
+	 *
+	 * @param string $errorMessage エラーメッセージ
+	 * @param string $FILE エラーが発生したファイル
+	 * @param int $LINE エラーが発生した行番号
+	 * @return bool コールバック関数が利用可能な場合、その関数の返却値を返します。コールバック関数が登録されない場合、何もせずに `true` を返します。
 	 */
 	private function eventhdl_query_error( $errorMessage = null , $FILE = null , $LINE = null ){
 		$method = $this->method_eventhdl_query_error;
@@ -1018,6 +1184,9 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 	}
 	/**
 	 * SQLエラー時のイベントハンドラをセットする。
+	 * 
+	 * @param mixed $method コールバック関数
+	 * @return bool 常に `true` を返します。
 	 */
 	public function set_eventhdl_query_error( $method ){
 		$this->method_eventhdl_query_error = $method;
@@ -1025,13 +1194,18 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 	}
 	/**
 	 * SQLエラー時のイベントハンドラを取得する。
+	 * 
+	 * @return bool SQLエラーハンドラ。
 	 */
 	public function get_eventhdl_query_error(){
 		return $this->method_eventhdl_query_error;
 	}
 
 	/**
-	 * SQLのLIMIT句を作成する
+	 * SQLのLIMIT句を作成する。
+	 * 
+	 * @param int $limit 取得件数
+	 * @param int $offset 取得する開始位置(省略時 `0`)
 	 */
 	public function mk_sql_limit( $limit , $offset = 0 ){
 		$sql = '';
@@ -1046,7 +1220,12 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 	}
 
 	/**
-	 * 配列からINSERT文を生成する
+	 * 配列からINSERT文を生成する。
+	 * 
+	 * @param string $table_name 挿入対象のテーブル名
+	 * @param array $insert_values 挿入する値の一覧
+	 * @param array $column_define テーブル定義(省略時、`$insert_values` の最初の行から自動生成する)
+	 * @return string 生成されたSQL
 	 */
 	public function mk_sql_insert( $table_name , $insert_values , $column_define = null ){
 		if( !strlen( $table_name ) ){ return false; }
@@ -1089,7 +1268,10 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 	#	anch: allabout_filehandle
 
 	/**
-	 * 書き込み/上書きしてよいアイテムか検証
+	 * 書き込み/上書きしてよいアイテムか検証する。
+	 * 
+	 * @param string $path 検証対象のパス
+	 * @return bool 書き込み可能な場合 `true`、不可能な場合に `false` を返します。
 	 */
 	public function is_writable( $path ){
 		if( strlen( $this->px->get_conf('system.filesystem_encoding') ) ){
@@ -1102,7 +1284,10 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 	}//is_writable()
 
 	/**
-	 * 読み込んでよいアイテムか検証
+	 * 読み込んでよいアイテムか検証する。
+	 * 
+	 * @param string $path 検証対象のパス
+	 * @return bool 読み込み可能な場合 `true`、不可能な場合に `false` を返します。
 	 */
 	public function is_readable( $path ){
 		if( strlen( $this->px->get_conf('system.filesystem_encoding') ) ){
@@ -1115,7 +1300,10 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 	}//is_readable()
 
 	/**
-	 * ファイルが存在するかどうか調べる
+	 * ファイルが存在するかどうか調べる。
+	 * 
+	 * @param string $path 検証対象のパス
+	 * @return bool ファイルが存在する場合 `true`、存在しない場合、またはディレクトリが存在する場合に `false` を返します。
 	 */
 	public function is_file( $path ){
 		if( strlen( $this->px->get_conf('system.filesystem_encoding') ) ){
@@ -1125,7 +1313,10 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 	}//is_file()
 
 	/**
-	 * フォルダが存在するかどうか調べる
+	 * ディレクトリが存在するかどうか調べる。
+	 * 
+	 * @param string $path 検証対象のパス
+	 * @return bool ディレクトリが存在する場合 `true`、存在しない場合、またはファイルが存在する場合に `false` を返します。
 	 */
 	public function is_dir( $path ){
 		if( strlen( $this->px->get_conf('system.filesystem_encoding') ) ){
@@ -1135,7 +1326,10 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 	}//is_dir()
 
 	/**
-	 * ファイルまたはフォルダが存在するかどうか調べる
+	 * ファイルまたはディレクトリが存在するかどうか調べる。
+	 * 
+	 * @param string $path 検証対象のパス
+	 * @return bool ファイルまたはディレクトリが存在する場合 `true`、存在しない場合に `false` を返します。
 	 */
 	public function file_exists( $path ){
 		if( strlen( $this->px->get_conf('system.filesystem_encoding') ) ){
@@ -1145,7 +1339,11 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 	}//file_exists()
 
 	/**
-	 * ディレクトリを作成する
+	 * ディレクトリを作成する。
+	 * 
+	 * @param string $dirpath 作成するディレクトリのパス
+	 * @param int $perm 作成するディレクトリに与えるパーミッション
+	 * @return bool 成功時に `true`、失敗時に `false` を返します。
 	 */
 	public function mkdir( $dirpath , $perm = null ){
 		if( strlen( $this->px->get_conf('system.filesystem_encoding') ) ){
@@ -1165,6 +1363,10 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 
 	/**
 	 * ディレクトリを作成する(上層ディレクトリも全て作成)
+	 * 
+	 * @param string $dirpath 作成するディレクトリのパス
+	 * @param int $perm 作成するディレクトリに与えるパーミッション
+	 * @return bool 成功時に `true`、失敗時に `false` を返します。
 	 */
 	public function mkdir_all( $dirpath , $perm = null ){
 		if( strlen( $this->px->get_conf('system.filesystem_encoding') ) ){
@@ -1187,18 +1389,23 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 	}//mkdir_all()
 
 	/**
-	 * ファイルを保存する
+	 * ファイルを保存する。
+	 * 
+	 * このメソッドは、`$filepath` にデータを保存します。
+	 * もともと保存されていた内容は破棄され、新しいデータで上書きします。
+	 * 
+	 * ただし、`fopen()` したリソースは、1回の処理の間保持されるので、
+	 * 1回の処理で同じファイルに対して2回以上コールされた場合は、
+	 * 追記される点に注意してください。
+	 * 1回の処理の間に何度も上書きする必要がある場合は、
+	 * 明示的に `$dbh->fclose($filepath);` をコールし、一旦ファイルを閉じてください。
+	 * 
+	 * @param string $filepath 保存先ファイルのパス
+	 * @param string $content 保存する内容
+	 * @param int $perm 保存するファイルに与えるパーミッション
+	 * @return bool 成功時に `true`、失敗時に `false` を返します。
 	 */
 	public function save_file( $filepath , $content , $perm = null ){
-		#	このメソッドは、$filepathにデータを保存します。
-		#	もともと保存されていた内容は破棄され、新しいデータで上書きします。
-		#
-		#	ただし、fopenしたリソースは、1回の処理の間保持されるので、
-		#	1回の処理で同じファイルに対して2回以上コールされた場合は、
-		#	追記される点に注意してください。
-		#	1回の処理の間に何度も上書きする必要がある場合は、
-		#	明示的に$dbh->fclose($filepath);をコールし、
-		#	一旦ファイルを閉じてください。
 
 		$filepath = $this->get_realpath($filepath);
 
@@ -1210,7 +1417,7 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 		if( !$this->is_writable( $filepath ) )	{ return false; }
 		if( @is_dir( $filepath ) ){ return false; }
 		if( @is_file( $filepath ) && !@is_writable( $filepath ) ){ return false; }
-		if( !is_array( $this->file[$filepath] ) ){
+		if( !is_array( @$this->file[$filepath] ) ){
 			$this->fopen( $filepath , 'w' );
 		}elseif( $this->file[$filepath]['mode'] != 'w' ){
 			$this->fclose( $filepath );
@@ -1237,7 +1444,12 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 	}//save_file()
 
 	/**
-	 * ファイルを上書き保存して閉じる
+	 * ファイルを上書き保存して閉じる。
+	 * 
+	 * @param string $filepath 保存先ファイルのパス
+	 * @param string $content 保存する内容
+	 * @param int $perm 保存するファイルに与えるパーミッション
+	 * @return bool 成功時に `true`、失敗時に `false` を返します。
 	 */
 	public function file_overwrite( $filepath , $content , $perm = null ){
 		if( $this->is_file_open( $filepath ) ){
@@ -1259,7 +1471,10 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 	}//file_overwrite()
 
 	/**
-	 * ファイルの中身を1行ずつ配列にいれて返す
+	 * ファイルの中身を1行ずつ配列にいれて取得する。
+	 * 
+	 * @param string $path ファイルのパス
+	 * @return array ファイル `$path` の内容を1行1要素で格納する配列
 	 */
 	public function file_get_lines( $path ){
 
@@ -1291,7 +1506,10 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 	}//file_get_lines()
 
 	/**
-	 * ファイルの中身を文字列型にして返す
+	 * ファイルの中身を文字列型にして取得する。
+	 * 
+	 * @param string $path ファイルのパス
+	 * @return string ファイル `$path` の内容
 	 */
 	public function file_get_contents( $path ){
 
@@ -1316,18 +1534,23 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 	}//file_get_contents()
 
 	/**
-	 * HTTP通信からコンテンツを取得する
+	 * HTTP通信からコンテンツを取得する。
+	 * 
+	 * 対象が、とてもサイズの大きなファイルだったとしても、
+	 * このメソッドはそれを検証しないことに注意してください。
+	 * また、そのように巨大なファイルの場合でも、
+	 * ディスクではなく、メモリに直接ロードします。
+	 * 
+	 * @param string $url ファイルのURL
+	 * @param string $saveTo 取得したファイルの保存先パス(省略可)
+	 * @return string|bool `$saveTo` が省略された場合、取得したコンテンツを返します。`$saveTo` が指定された場合、保存成功時に `true`、失敗時に `false` を返します。
 	 */
 	public function get_http_content( $url , $saveTo = null ){
-		#	対象が、とてもサイズの大きなファイルだったとしても、
-		#	このメソッドはそれを検証しないことに注意してください。
-		#	また、そのように巨大なファイルの場合でも、
-		#	ディスクではなく、メモリに直接ロードします。
 
 		if( !ini_get('allow_url_fopen') ){
 			#	PHP設定値 allow_url_fopen が無効な場合は、
 			#	file() によるウェブアクセスができないため、エラーを記録。
-			$this->px->error()->error_log( 'php.ini value "allow_url_fopen" is FALSE. So, disable to get Web contents ['.$path.'] on $dbh->file_get_contents();' );
+			$this->px->error()->error_log( 'php.ini value "allow_url_fopen" is FALSE. So, disable to get Web contents ['.$path.'] on $dbh->get_http_content();' );
 			return	false;
 		}
 		if( preg_match( '/^(?:http:\/\/|https:\/\/)/' , $url ) ){
@@ -1373,13 +1596,16 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 	}//get_http_content()
 
 	/**
-	 * ファイルの更新日時を比較する
+	 * ファイルの更新日時を比較する。
+	 * 
+	 * @param string $path_a 比較対象A
+	 * @param string $path_b 比較対象B
+	 * @return bool|null 
+	 * `$path_a` の方が新しかった場合に `true`、
+	 * `$path_b` の方が新しかった場合に `false`、
+	 * 同時だった場合に `null` を返します。
 	 */
 	public function is_newer_a_than_b( $path_a , $path_b ){
-		#	$path_a の方が新しかった場合にtrue
-		#	$path_b の方が新しかった場合にfalse
-		#	同時だった場合にnullを返す。
-
 		if( strlen( $this->px->get_conf('system.filesystem_encoding') ) ){
 			//PxFW 0.6.4 追加
 			$path_a = @t::convert_encoding( $path_a , $this->px->get_conf('system.filesystem_encoding') );
@@ -1397,7 +1623,11 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 	}//is_newer_a_than_b()
 
 	/**
-	 * ファイル名/ディレクトリ名を変更する
+	 * ファイル名/ディレクトリ名を変更する。
+	 *
+	 * @param string $original 現在のファイルまたはディレクトリ名
+	 * @param string $newname 変更後のファイルまたはディレクトリ名
+	 * @return bool 成功時 `true`、失敗時 `false` を返します。
 	 */
 	public function rename( $original , $newname ){
 		if( strlen( $this->px->get_conf('system.filesystem_encoding') ) ){
@@ -1411,7 +1641,13 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 	}//rename()
 
 	/**
-	 * ファイル名/ディレクトリ名の変更を完全に実行する
+	 * ファイル名/ディレクトリ名の変更を完全に実行する。
+	 *
+	 * 移動先の親ディレクトリが存在しない場合にも、親ディレクトリを作成して移動するよう試みます。
+	 *
+	 * @param string $original 現在のファイルまたはディレクトリ名
+	 * @param string $newname 変更後のファイルまたはディレクトリ名
+	 * @return bool 成功時 `true`、失敗時 `false` を返します。
 	 */
 	public function rename_complete( $original , $newname ){
 		if( strlen( $this->px->get_conf('system.filesystem_encoding') ) ){
@@ -1431,14 +1667,16 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 	}//rename_complete()
 
 	/**
-	 * 絶対パスを得る
+	 * 絶対パスを得る。
 	 * 
-	 * パス情報を受け取り、スラッシュから始まるサーバー内部絶対パスに変換して返す。
+	 * パス情報を受け取り、スラッシュから始まるサーバー内部絶対パスに変換して返します。
 	 * 
-	 * ※このメソッドは、realpath()と違い、
-	 * 　存在しないアイテムもフルパスに変換します。
-	 * 　ただし、ルート直下のディレクトリまでは一致している必要があり、
-	 * 　そうでない場合は、falseを返します。
+	 * このメソッドは、`realpath()` と違い、存在しないアイテムも絶対パスに変換します。
+	 * ただし、ルート直下のディレクトリまでは一致している必要があり、そうでない場合は、`false` を返します。
+	 * 
+	 * @param string $path 対象のパス
+	 * @param string $itemname 再帰的に処理する場合に使用(初回コール時は使用しません)
+	 * @return string 絶対パス
 	 */
 	public function get_realpath( $path , $itemname = null ){
 		$path = preg_replace( '/\\\\/si' , '/' , $path );
@@ -1481,7 +1719,10 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 	}
 
 	/**
-	 * パス情報を得る
+	 * パス情報を得る。
+	 * 
+	 * @param string $path 対象のパス
+	 * @return array パス情報
 	 */
 	public function pathinfo( $path ){
 		if( strlen( $this->px->get_conf('system.filesystem_encoding') ) ){
@@ -1493,14 +1734,20 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 	}
 
 	/**
-	 * パス情報から、ファイル名を取得する
+	 * パス情報から、ファイル名を取得する。
+	 * 
+	 * @param string $path 対象のパス
+	 * @return string 抜き出されたファイル名
 	 */
 	public function get_basename( $path ){
 		return	pathinfo( $path , PATHINFO_BASENAME );
 	}
 
 	/**
-	 * パス情報から、拡張子を除いたファイル名を取得する
+	 * パス情報から、拡張子を除いたファイル名を取得する。
+	 * 
+	 * @param string $path 対象のパス
+	 * @return string 拡張子が除かれたパス
 	 */
 	public function trim_extension( $path ){
 		$pathinfo = pathinfo( $path );
@@ -1509,14 +1756,20 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 	}
 
 	/**
-	 * ファイル名を含むパス情報から、ファイルが格納されているディレクトリ名を取得する
+	 * ファイル名を含むパス情報から、ファイルが格納されているディレクトリ名を取得する。
+	 * 
+	 * @param string $path 対象のパス
+	 * @return string 親ディレクトリのパス
 	 */
 	public function get_dirpath( $path ){
 		return	pathinfo( $path , PATHINFO_DIRNAME );
 	}
 
 	/**
-	 * パス情報から、拡張子を取得する
+	 * パス情報から、拡張子を取得する。
+	 * 
+	 * @param string $path 対象のパス
+	 * @return string 拡張子
 	 */
 	public function get_extension( $path ){
 		return	pathinfo( $path , PATHINFO_EXTENSION );
@@ -1524,7 +1777,11 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 
 
 	/**
-	 * CSVファイルを読み込む
+	 * CSVファイルを読み込む。
+	 * 
+	 * @param string $path 対象のCSVファイルのパス
+	 * @param array $options オプション
+	 * @return array|bool 読み込みに成功した場合、行列を格納した配列、失敗した場合には `false` を返します。
 	 */
 	public function read_csv( $path , $options = array() ){
 		#	$options['charset'] は、保存されているCSVファイルの文字エンコードです。
@@ -1540,15 +1797,15 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 			return	false;
 		}
 
-		if( !strlen( $options['delimiter'] ) )    { $options['delimiter'] = ','; }
-		if( !strlen( $options['enclosure'] ) )    { $options['enclosure'] = '"'; }
-		if( !strlen( $options['size'] ) )         { $options['size'] = 10000; }
-		if( !strlen( $options['charset'] ) )      { $options['charset'] = 'SJIS-win'; }
+		if( !strlen( @$options['delimiter'] ) )    { $options['delimiter'] = ','; }
+		if( !strlen( @$options['enclosure'] ) )    { $options['enclosure'] = '"'; }
+		if( !strlen( @$options['size'] ) )         { $options['size'] = 10000; }
+		if( !strlen( @$options['charset'] ) )      { $options['charset'] = 'SJIS-win'; }
 
 		$RTN = array();
 		if( !$this->fopen($path,'r') ){ return false; }
 		$filelink = $this->get_file_resource($path);
-		if( !is_resource( $filelink ) || !is_null( $this->file[$path]['contents'] ) ){
+		if( !is_resource( $filelink ) || !is_null( @$this->file[$path]['contents'] ) ){
 			return $this->file[$path]['contents'];
 		}
 		while( $SMMEMO = fgetcsv( $filelink , intval( $options['size'] ) , $options['delimiter'] , $options['enclosure'] ) ){
@@ -1561,6 +1818,10 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 
 	/**
 	 * UTF-8のCSVファイルを読み込む
+	 * 
+	 * @param string $path 対象のCSVファイルのパス
+	 * @param array $options オプション
+	 * @return array|bool 読み込みに成功した場合、行列を格納した配列、失敗した場合には `false` を返します。
 	 */
 	public function read_csv_utf8( $path , $options = array() ){
 		#	読み込み時にUTF-8の解釈が優先される。
@@ -1573,6 +1834,10 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 
 	/**
 	 * 配列をCSV形式に変換する
+	 * 
+	 * @param array $array 2次元配列
+	 * @param array $options オプション
+	 * @return string 生成されたCSV形式のテキスト
 	 */
 	public function mk_csv( $array , $options = array() ){
 		#	$options['charset'] は、出力されるCSV形式の文字エンコードを指定します。
@@ -1601,7 +1866,11 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 	}//mk_csv()
 
 	/**
-	 * 配列をUTF8-エンコードのCSV形式に変換する
+	 * 配列をUTF8-エンコードのCSV形式に変換する。
+	 * 
+	 * @param array $array 2次元配列
+	 * @param array $options オプション
+	 * @return string 生成されたCSV形式のテキスト
 	 */
 	public function mk_csv_utf8( $array , $options = array() ){
 		if( !is_array($options) ){
@@ -1612,7 +1881,12 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 	}//mk_csv_utf8()
 
 	/**
-	 * ファイルを複製する
+	 * ファイルを複製する。
+	 * 
+	 * @param string $from コピー元ファイルのパス
+	 * @param string $to コピー先のパス
+	 * @param int $perm 保存するファイルに与えるパーミッション
+	 * @return bool 成功時に `true`、失敗時に `false` を返します。
 	 */
 	public function copy( $from , $to , $perm = null ){
 		if( strlen( $this->px->get_conf('system.filesystem_encoding') ) ){
@@ -1642,6 +1916,11 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 
 	/**
 	 * ディレクトリを複製する(下層ディレクトリも全てコピー)
+	 * 
+	 * @param string $from コピー元ファイルのパス
+	 * @param string $to コピー先のパス
+	 * @param int $perm 保存するファイルに与えるパーミッション
+	 * @return bool 成功時に `true`、失敗時に `false` を返します。
 	 */
 	public function copy_all( $from , $to , $perm = null ){
 		if( strlen( $this->px->get_conf('system.filesystem_encoding') ) ){
@@ -1693,7 +1972,12 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 	}//copy_all()
 
 	/**
-	 * ファイルを開き、ファイルリソースをセット
+	 * ファイルを開き、ファイルリソースをセットする。
+	 * 
+	 * @param string $filepath ファイルのパス
+	 * @param string $mode モード
+	 * @param bool $flock ファイルをロックするフラグ
+	 * @return resource|bool 成功したらファイルリソースを、失敗したら `false` を返します。
 	 */
 	public function &fopen( $filepath , $mode = 'r' , $flock = true ){
 		$filepath_fsenc = $filepath;
@@ -1705,7 +1989,7 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 		$filepath = $this->get_realpath( $filepath );
 
 		#	すでに開かれていたら
-		if( is_resource( $this->file[$filepath]['res'] ) ){
+		if( is_resource( @$this->file[$filepath]['res'] ) ){
 			if( $this->file[$filepath]['mode'] != $mode ){
 				#	$modeが前回のアクセスと違っていたら、
 				#	前回の接続を一旦closeして、開きなおす。
@@ -1713,7 +1997,7 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 			}else{
 				#	前回と$modeが一緒であれば、既に開いているので、
 				#	ここで終了。
-				return	true;
+				return	$this->file[$filepath]['res'];
 			}
 		}
 
@@ -1745,7 +2029,7 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 			}
 		}
 
-		if( is_array( $this->file[$filepath] ) ){ $this->fclose( $filepath ); }
+		if( is_array( @$this->file[$filepath] ) ){ $this->fclose( $filepath ); }
 
 		for( $i = 0; $i < 5; $i++ ){
 			$res = @fopen( $filepath_fsenc , $mode );
@@ -1766,6 +2050,9 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 
 	/**
 	 * ファイルのリソースを取得する。
+	 * 
+	 * @param string $filepath ファイルのパス
+	 * @return resource ファイルリソース
 	 */
 	public function &get_file_resource( $filepath ){
 		$filepath = $this->get_realpath($filepath);
@@ -1773,7 +2060,11 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 	}//get_file_resource()
 
 	/**
-	 * パーミッションを変更する
+	 * パーミッションを変更する。
+	 * 
+	 * @param string $filepath 対象のパス
+	 * @param int $perm 保存するファイルに与えるパーミッション
+	 * @return bool 成功時に `true`、失敗時に `false` を返します。
 	 */
 	public function chmod( $filepath , $perm = null ){
 		if( strlen( $this->px->get_conf('system.filesystem_encoding') ) ){
@@ -1795,6 +2086,9 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 
 	/**
 	 * パーミッション情報を調べ、3桁の数字で返す。
+	 * 
+	 * @param string $path 対象のパス
+	 * @return int|bool 成功時に 3桁の数字、失敗時に `false` を返します。
 	 */
 	public function get_permission( $path ){
 		if( strlen( $this->px->get_conf('system.filesystem_encoding') ) ){
@@ -1811,6 +2105,9 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 
 	/**
 	 * ディレクトリにあるファイル名のリストを配列で返す。
+	 * 
+	 * @param string $path 対象ディレクトリのパス
+	 * @return array|bool 成功時にファイルまたはディレクトリ名の一覧を格納した配列、失敗時に `false` を返します。
 	 */
 	public function ls($path){
 		if( strlen( $this->px->get_conf('system.filesystem_encoding') ) ){
@@ -1839,11 +2136,13 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 	}//ls()
 
 	/**
-	 * ディレクトリを削除する
+	 * ディレクトリを削除する。
 	 * 
 	 * このメソッドはディレクトリを削除します。
 	 * 中身のない、空っぽのディレクトリ以外は削除できません。
 	 * 
+	 * @param string $path 対象ディレクトリのパス
+	 * @return bool 成功時に `true`、失敗時に `false` を返します。
 	 */
 	public function rmdir( $path ){
 
@@ -1873,11 +2172,14 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 	}//rmdir()
 
 	/**
-	 * ファイルやディレクトリを中身ごと完全に削除する
+	 * ファイルやディレクトリを中身ごと完全に削除する。
+	 * 
 	 * このメソッドは、ファイルやシンボリックリンクも削除します。
 	 * ディレクトリを削除する場合は、中身ごと完全に削除します。
 	 * シンボリックリンクは、その先を追わず、シンボリックリンク本体のみを削除します。
 	 * 
+	 * @param string $path 対象のパス
+	 * @return bool 成功時に `true`、失敗時に `false` を返します。
 	 */
 	public function rm( $path ){
 
@@ -1911,7 +2213,11 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 	}//rm()
 
 	/**
-	 * ディレクトリの内部を比較し、$comparisonに含まれない要素を$targetから削除する
+	 * ディレクトリの内部を比較し、$comparisonに含まれない要素を$targetから削除する。
+	 *
+	 * @param string $target クリーニング対象のディレクトリパス
+	 * @param string $comparison 比較するディレクトリのパス
+	 * @return bool 成功時 `true`、失敗時 `false` を返します。
 	 */
 	public function compare_and_cleanup( $target , $comparison ){
 		if( is_null( $comparison ) || is_null( $target ) ){ return false; }
@@ -1941,9 +2247,11 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 	}//compare_and_cleanup()
 
 	/**
-	 * ディレクトリを同期する
-	 * @param $path_sync_from 同期元ディレクトリ
-	 * @param $path_sync_to 同期先ディレクトリ
+	 * ディレクトリを同期する。
+	 * 
+	 * @param string $path_sync_from 同期元ディレクトリ
+	 * @param string $path_sync_to 同期先ディレクトリ
+	 * @return bool 常に `true` を返します。
 	 */
 	public function sync_dir( $path_sync_from , $path_sync_to ){
 		$this->copy_all( $path_sync_from , $path_sync_to );
@@ -1952,9 +2260,13 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 	}//sync_dir()
 
 	/**
-	 * 指定されたディレクトリ以下の、全ての空っぽのディレクトリを削除する
+	 * 指定されたディレクトリ以下の、全ての空っぽのディレクトリを削除する。
+	 * 
+	 * @param string $path ディレクトリパス
+	 * @param array $options オプション
+	 * @return bool 成功時 `true`、失敗時 `false` を返します。
 	 */
-	public function remove_empty_dir( $path , $option = array() ){
+	public function remove_empty_dir( $path , $options = array() ){
 		if( strlen( $this->px->get_conf('system.filesystem_encoding') ) ){
 			$path = @t::convert_encoding( $path , $this->px->get_conf('system.filesystem_encoding') );
 		}
@@ -1968,18 +2280,18 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 		#--------------------------------------
 		#	次の階層を処理するかどうかのスイッチ
 		$switch_donext = false;
-		if( is_null( $option['depth'] ) ){
+		if( is_null( $options['depth'] ) ){
 			#	深さの指定がなければ掘る
 			$switch_donext = true;
-		}elseif( !is_int( $option['depth'] ) ){
+		}elseif( !is_int( $options['depth'] ) ){
 			#	指定がnullでも数値でもなければ掘らない
 			$switch_donext = false;
-		}elseif( $option['depth'] <= 0 ){
+		}elseif( $options['depth'] <= 0 ){
 			#	指定がゼロ以下なら、今回の処理をして終了
 			$switch_donext = false;
-		}elseif( $option['depth'] > 0 ){
+		}elseif( $options['depth'] > 0 ){
 			#	指定が正の数(ゼロは含まない)なら、掘る
-			$option['depth'] --;
+			$options['depth'] --;
 			$switch_donext = true;
 		}else{
 			return	false;
@@ -2003,7 +2315,7 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 			}elseif( @is_dir( $path.'/'.$Line ) ){
 				if( $switch_donext ){
 					#	さらに掘れと指令があれば、掘る。
-					$this->remove_empty_dir( $path.'/'.$Line , $option );
+					$this->remove_empty_dir( $path.'/'.$Line , $options );
 				}
 			}
 			if( @file_exists( $path.'/'.$Line ) ){
@@ -2019,13 +2331,20 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 
 
 	/**
-	 * 指定された2つのディレクトリの内容を比較し、まったく同じかどうか調べる
+	 * 指定された2つのディレクトリの内容を比較し、まったく同じかどうか調べる。
+	 *
+	 * @param string $dir_a 比較対象ディレクトリA
+	 * @param string $dir_b 比較対象ディレクトリB
+	 * @param array $options オプション
+	 * <dl>
+	 *   <dt>bool $options['compare_filecontent']</dt>
+	 * 	   <dd>ファイルの中身も比較するか？</dd>
+	 *   <dt>bool $options['compare_emptydir']</dt>
+	 * 	   <dd>空っぽのディレクトリの有無も評価に含めるか？</dd>
+	 * </dl>
+	 * @return bool 同じ場合に `true`、異なる場合に `false` を返します。
 	 */
-	public function compare_dir( $dir_a , $dir_b , $option = array() ){
-		#	$option['compare_filecontent'] = bool;
-		#		ファイルの中身も比較するか
-		#	$option['compare_emptydir'] = bool;
-		#		空っぽのディレクトリの有無も評価に含めるか？
+	public function compare_dir( $dir_a , $dir_b , $options = array() ){
 
 		if( strlen( $this->px->get_conf('system.filesystem_encoding') ) ){
 			//PxFW 0.6.4 追加
@@ -2036,14 +2355,14 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 		if( ( @is_file( $dir_a ) && !@is_file( $dir_b ) ) || ( !@is_file( $dir_a ) && @is_file( $dir_b ) ) ){
 			return	false;
 		}
-		if( ( ( @is_dir( $dir_a ) && !@is_dir( $dir_b ) ) || ( !@is_dir( $dir_a ) && @is_dir( $dir_b ) ) ) && $option['compare_emptydir'] ){
+		if( ( ( @is_dir( $dir_a ) && !@is_dir( $dir_b ) ) || ( !@is_dir( $dir_a ) && @is_dir( $dir_b ) ) ) && $options['compare_emptydir'] ){
 			return	false;
 		}
 
 		if( @is_file( $dir_a ) && @is_file( $dir_b ) ){
 			#--------------------------------------
 			#	両方ファイルだったら
-			if( $option['compare_filecontent'] ){
+			if( $options['compare_filecontent'] ){
 				#	ファイルの内容も比較する設定の場合、
 				#	それぞれファイルを開いて同じかどうかを比較
 				$filecontent_a = $this->file_get_contents( $dir_a );
@@ -2061,7 +2380,7 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 			$contlist_a = $this->ls( $dir_a );
 			$contlist_b = $this->ls( $dir_b );
 
-			if( $option['compare_emptydir'] && $contlist_a !== $contlist_b ){
+			if( $options['compare_emptydir'] && $contlist_a !== $contlist_b ){
 				#	空っぽのディレクトリも厳密に評価する設定で、
 				#	ディレクトリ内の要素配列の内容が異なれば、false。
 				return false;
@@ -2071,7 +2390,7 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 			foreach( $contlist_a as $Line ){
 				#	Aをチェック
 				if( $Line == '..' || $Line == '.' ){ continue; }
-				if( !$this->compare_dir( $dir_a.'/'.$Line , $dir_b.'/'.$Line , $option ) ){
+				if( !$this->compare_dir( $dir_a.'/'.$Line , $dir_b.'/'.$Line , $options ) ){
 					return false;
 				}
 				$done[$Line] = true;
@@ -2081,7 +2400,7 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 				#	Aに含まれなかったBをチェック
 				if( $done[$Line] ){ continue; }
 				if( $Line == '..' || $Line == '.' ){ continue; }
-				if( !$this->compare_dir( $dir_a.'/'.$Line , $dir_b.'/'.$Line , $option ) ){
+				if( !$this->compare_dir( $dir_a.'/'.$Line , $dir_b.'/'.$Line , $options ) ){
 					return false;
 				}
 				$done[$Line] = true;
@@ -2097,11 +2416,19 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 	#	エラー処理
 
 	/**
-	 * オブジェクト内部エラーを記録
+	 * オブジェクト内部エラーを記録する。
+	 * 
+	 * @param string $errortext エラー文言
+	 * @param string $errorkey エラーキー
+	 * @param string $file エラーが発生したファイルパス
+	 * @param string $line エラーが発生した行番号
+	 * @return bool 成功時に `true`、失敗時に `false` を返します。
 	 */
 	private function add_error( $errortext = null , $errorkey = null , $file = null , $line = null ){
 		static $seq;	// シーケンス
-		if( !$errortext ){ return null; }
+		if( !strlen($errortext) ){
+			$errortext = 'Unknown error';
+		}
 		if( !$seq ){ $seq = 0; }
 		if( is_null( $errorkey ) ){ $errorkey = $seq; }
 		if( is_null( $errortext ) ){ $errortext = 'Error'; }
@@ -2115,7 +2442,9 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 	}//add_error()
 
 	/**
-	 * オブジェクト内部エラーを取得
+	 * オブジェクト内部エラーを取得する。
+	 * 
+	 * @return array 内部エラーリスト
 	 */
 	public function get_error_list(){
 		return	$this->errorlist;
@@ -2126,7 +2455,9 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 	#	終了系の処理集
 
 	/**
-	 * 全てのファイルとデータベースを閉じる
+	 * 全てのファイルとデータベースを閉じる。
+	 * 
+	 * @return bool 成功時 `true`、失敗時 `false` を返します。
 	 */
 	public function close_all(){
 		$res_f = $this->fclose_all();
@@ -2138,7 +2469,9 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 	}
 
 	/**
-	 * 開いている全てのファイルを閉じる
+	 * 開いている全てのファイルを閉じる。
+	 * 
+	 * @return bool 成功時 `true`、失敗時 `false` を返します。
 	 */
 	public function fclose_all(){
 		foreach($this->file as $line){
@@ -2148,7 +2481,10 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 	}
 
 	/**
-	 * 開いているファイル(単体)を閉じる
+	 * 開いているファイル(単体)を閉じる。
+	 * 
+	 * @param string $filepath 閉じるファイルパス
+	 * @return bool 成功時 `true`、失敗時 `false` を返します。
 	 */
 	public function fclose( $filepath ){
 		$filepath = $this->get_realpath( $filepath );
@@ -2166,7 +2502,10 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 	}
 
 	/**
-	 * ファイルを開いている状態か確認する
+	 * ファイルを開いている状態か確認する。
+	 * 
+	 * @param string $filepath 調査対象のファイルパス
+	 * @return bool すでに開いている場合 `true`、開いていない場合に `false` を返します。
 	 */
 	public function is_file_open( $filepath ){
 		$filepath = $this->get_realpath( $filepath );
@@ -2176,13 +2515,17 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 	}
 
 	/**
-	 * すべてのデータベースコネクションを切断する
+	 * すべてのデータベースコネクションを切断する。
+	 * 
+	 * @return bool 成功時 `true`、失敗時 `false` を返します。
 	 */
 	public function disconnect_all(){
 		return $this->disconnect();
 	}
 	/**
 	 * データベースコネクションを切断する
+	 * 
+	 * @return bool 成功時 `true`、失敗時 `false` を返します。
 	 */
 	private function disconnect(){
 		if( !$this->check_connection() ){return true;}
@@ -2243,7 +2586,13 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 	#	anch: allabout_others
 
 	/**
-	 * アプリケーションをロックする
+	 * アプリケーションをロックする。
+	 * 
+	 * @param string $lockname ロック名。デフォルトは `'applock'`
+	 * @param string $user_cd ロック処理をしたユーザーのID。ログインユーザーがいない場合は `null` を指定する。
+	 * @param int $timeout_limit 他のユーザーがロックしている場合に、開放まで待つ待ち時間。省略時 `10` 秒。
+	 * @param int $lockfile_expire 1回のロック状態が長く続く場合、その有効期限。省略時 `0` (=無期限)
+	 * @return bool 成功時 `true`、失敗時に `false` を返します。
 	 */
 	public function lock( $lockname = 'applock' , $user_cd = null , $timeout_limit = 10 , $lockfile_expire = 0 ){
 		if( !preg_match( '/^[a-zA-Z0-9_-]+$/ism' , $lockname ) ){ $lockname = 'applock'; }
@@ -2290,7 +2639,12 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 	}//lock()
 
 	/**
-	 * アプリケーションロックを解除する
+	 * アプリケーションロックを解除する。
+	 * 
+	 * `$dbh->lock()` でかけたロックを解除します。
+	 *
+	 * @param string $lockname ロック名。デフォルトは `'applock'`
+	 * @return bool 成功時 `true`、失敗時に `false` を返します。
 	 */
 	public function unlock( $lockname = 'applock' ){
 		if( !preg_match( '/^[a-zA-Z0-9_-]+$/ism' , $lockname ) ){ $lockname = 'applock'; }
@@ -2306,6 +2660,9 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 
 	/**
 	 * 実行したコマンドの標準出力を得て返す。
+	 * 
+	 * @param string $cmd コマンド
+	 * @return string コマンドが発行した標準出力
 	 */
 	public function get_cmd_stdout( $cmd ){
 		$res = @popen( $cmd , 'r' );
@@ -2319,7 +2676,9 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 
 
 	/**
-	 * サーバがUNIXパスか調べる
+	 * サーバがUNIXパスか調べる。
+	 * 
+	 * @return bool UNIXパスなら `true`、それ以外なら `false` を返します。
 	 */
 	public function is_unix(){
 		$rootpath = @realpath( '/' );
@@ -2330,7 +2689,9 @@ SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
 	}//is_unix()
 
 	/**
-	 * サーバがWindowsパスか調べる
+	 * サーバがWindowsパスか調べる。
+	 * 
+	 * @return bool Windowsパスなら `true`、それ以外なら `false` を返します。
 	 */
 	public function is_windows(){
 		$rootpath = @realpath( '/' );

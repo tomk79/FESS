@@ -1,59 +1,109 @@
 <?php
-
+/**
+ * class px_px
+ * 
+ * PxFWのコアオブジェクト `$px` のオブジェクトクラスを定義します。
+ * 
+ * @author Tomoya Koyanagi <tomk79@gmail.com>
+ */
 /**
  * $pxオブジェクトクラス
+ * 
+ * `$px` は、PxFWのあらゆる処理の中心となるオブジェクトです。
+ * PxFWの処理の冒頭でインスタンス化され、以降はこのオブジェクトの内部で処理が進行します。
+ * 
  * @author Tomoya Koyanagi <tomk79@gmail.com>
  */
 class px_px{
+	/**
+	 * コンフィグ内容
+	 */
 	private $conf = array();
+	/**
+	 * コアオブジェクト $dbh
+	 */
 	private $obj_dbh  ;
+	/**
+	 * コアオブジェクト $error
+	 */
 	private $obj_error;
+	/**
+	 * コアオブジェクト $req
+	 */
 	private $obj_req  ;
+	/**
+	 * コアオブジェクト $site
+	 */
 	private $obj_site ;
+	/**
+	 * コアオブジェクト $theme
+	 */
 	private $obj_theme;
+	/**
+	 * コアオブジェクト $user
+	 */
 	private $obj_user ;
 
+	/**
+	 * PX Command
+	 */
 	private $pxcommand;
+	/**
+	 * 関連ファイルのURL情報
+	 */
 	private $relatedlinks = array();
+	/**
+	 * コンフィグファイル `mainconf.ini` の格納パス
+	 */
 	private $path_mainconf;
+	/**
+	 * プラグインオブジェクトのコレクション
+	 */
 	private $plugin_objects = array();
+	/**
+	 * ディレクトリインデックスの一覧
+	 */
 	private $directory_index = array();
 
 	/**
-	 * PxFWのバージョン情報を取得する
+	 * PxFWのバージョン情報を取得する。
+	 * 
+	 * <pre> [バージョン番号のルール]
+	 *    基本
+	 *      メジャーバージョン番号.マイナーバージョン番号.リリース番号
+	 *        例：1.0.0
+	 *        例：1.8.9
+	 *        例：12.19.129
+	 *      - 大規模な仕様の変更や追加を伴う場合にはメジャーバージョンを上げる。
+	 *      - 小規模な仕様の変更や追加の場合は、マイナーバージョンを上げる。
+	 *      - バグ修正、ドキュメント、コメント修正等の小さな変更は、リリース番号を上げる。
+	 *    開発中プレビュー版
+	 *      基本バージョンの後ろに、a(=α版)またはb(=β版)を付加し、その連番を記載する。
+	 *        例：1.0.0a1 ←最初のα版
+	 *        例：1.0.0b12 ←12回目のβ版
+	 *      開発中およびリリースバージョンの順序は次の通り
+	 *        1.0.0a1 -> 1.0.0a2 -> 1.0.0b1 ->1.0.0b2 -> 1.0.0 ->1.0.1a1 ...
+	 *    ナイトリービルド
+	 *      ビルドの手順はないので正確には "ビルド" ではないが、
+	 *      バージョン番号が振られていない、開発途中のリビジョンを
+	 *      ナイトリービルドと呼ぶ。
+	 *      ナイトリービルドの場合、バージョン情報は、
+	 *      ひとつ前のバージョン文字列の末尾に、'-nb' を付加する。
+	 *        例：1.0.0b12-nb (=1.0.0b12リリース後のナイトリービルド)
+	 *      普段の開発においてコミットする場合、
+	 *      必ずこの get_version() がこの仕様になっていることを確認すること。
+	 * </pre>
+	 * 
 	 * @return string バージョン番号を示す文字列
 	 */
 	public function get_version(){
-		return '1.0.0b11-nb';
-
-		//  [バージョン番号のルール]
-		//    基本
-		//      メジャーバージョン番号.マイナーバージョン番号.リリース番号
-		//        例：1.0.0
-		//        例：1.8.9
-		//        例：12.19.129
-		//      - 大規模な仕様の変更や追加を伴う場合にはメジャーバージョンを上げる。
-		//      - 小規模な仕様の変更や追加の場合は、マイナーバージョンを上げる。
-		//      - バグ修正、ドキュメント、コメント修正等の小さな変更は、リリース番号を上げる。
-		//    開発中プレビュー版
-		//      基本バージョンの後ろに、a(=α版)またはb(=β版)を付加し、その連番を記載する。
-		//        例：1.0.0a1 ←最初のα版
-		//        例：1.0.0b12 ←12回目のβ版
-		//      開発中およびリリースバージョンの順序は次の通り
-		//        1.0.0a1 -> 1.0.0a2 -> 1.0.0b1 ->1.0.0b2 -> 1.0.0 ->1.0.1a1 ...
-		//    ナイトリービルド
-		//      ビルドの手順はないので正確には "ビルド" ではないが、
-		//      バージョン番号が振られていない、開発途中のリビジョンを
-		//      ナイトリービルドと呼ぶ。
-		//      ナイトリービルドの場合、バージョン情報は、
-		//      ひとつ前のバージョン文字列の末尾に、'-nb' を付加する。
-		//        例：1.0.0b12-nb (=1.0.0b12リリース後のナイトリービルド)
-		//      普段の開発においてコミットする場合、
-		//      必ずこの get_version() がこの仕様になっていることを確認すること。
+		return '1.0.4';
 	}
 
 	/**
-	 * $pxオブジェクトの初期化。
+	 * コンストラクタ
+	 * 
+	 * @param string $path_mainconf コンフィグファイル `mainconf.ini` の格納パス
 	 */
 	public function __construct( $path_mainconf ){
 		$this->path_mainconf = $path_mainconf;
@@ -75,8 +125,12 @@ class px_px{
 
 	/**
 	 * フレームワークを実行する。
-	 * 呼び出し元から明示的にキックされる。
-	 * @return boolean true
+	 * 
+	 * フレームワークの実行開始直後に呼び出し元から明示的にキックされます(コンストラクタはこのメソッドを実行しません)。一度キックされたあとは、もう呼び出す必要はありません。
+	 * 
+	 * 2度目に呼び出した場合、`false` が返されます。
+	 * 
+	 * @return bool 正常時 `true`、失敗した場合に `false`
 	 */
 	public function execute(){
 		static $executed_flg = false;
@@ -87,6 +141,12 @@ class px_px{
 		$executed_flg = true;
 
 		$this->access_log();//アクセスログを記録
+
+		if( $this->user()->is_publishtool() ){
+			// パブリッシュツールのアクセスだったら、PHPのエラーを標準出力しないようにする。
+			@ini_set('display_errors', 'Off');
+		}
+
 
 		//  PX Commands を実行
 		$tmp_px_class_name = $this->load_px_class( 'pxcommands/'.$this->pxcommand[0].'.php' );
@@ -101,7 +161,7 @@ class px_px{
 		if( strlen($this->req()->get_param('THEME')) ){
 			$this->theme()->set_theme_id( $this->req()->get_param('THEME') );
 		}
-		if( !is_dir( $_SERVER['DOCUMENT_ROOT'].$this->get_install_path().'_caches/themes/'.$this->theme()->get_theme_id().'/' ) ){
+		if( !is_dir( $_SERVER['DOCUMENT_ROOT'].$this->get_install_path().''.$this->get_conf('system.public_cache_dir').'/themes/'.$this->theme()->get_theme_id().'/' ) ){
 			// テーマリソースキャッシュの一次生成
 			$this->path_theme_files('/');
 		}
@@ -139,6 +199,10 @@ class px_px{
 			}
 		}
 		$path_content = $this->dbh()->get_realpath( dirname($_SERVER['SCRIPT_FILENAME']).$localpath_current_content );
+		if( is_file(dirname($_SERVER['SCRIPT_FILENAME']).$_SERVER['PATH_INFO']) ){
+			// 物理ファイルが存在する場合はそっちが優先
+			$path_content = $this->dbh()->get_realpath( dirname($_SERVER['SCRIPT_FILENAME']).$_SERVER['PATH_INFO'] );
+		}
 
 		//------
 		//  拡張子違いのコンテンツを検索
@@ -178,6 +242,9 @@ class px_px{
 				print $this->theme()->output_filter($this->theme()->bind_contents( '<p>Unknow extension.</p>' ), 'html');
 			}
 		}else{
+			if( is_null($this->site()->get_current_page_info())){
+				return $this->page_notfound();
+			}
 			print $this->theme()->output_filter($this->theme()->bind_contents( '<p>Content file is not found.</p>' ), 'html');
 		}
 		$final_html = @ob_get_clean();
@@ -190,7 +257,13 @@ class px_px{
 
 	/**
 	 * 拡張ヘッダ X-PXFW-RELATEDLINK にリンクを追加する。
-	 * @return true|false
+	 * 
+	 * 拡張ヘッダ `X-PXFW-RELATEDLINK` は、サイトマップや物理ディレクトリから発見できないファイルを、PxFWのパブリッシュツールに知らせます。
+	 * 
+	 * 通常、PxFWのパブリッシュツールは 動的に生成されたページなどを知ることができず、パブリッシュされません。このメソッドを通じて、明示的に知らせる必要があります。
+	 * 
+	 * @param string $path リンクのパス
+	 * @return bool 正常時 `true`、失敗した場合 `false`
 	 */
 	public function add_relatedlink( $path ){
 		$path = trim($path);
@@ -202,7 +275,11 @@ class px_px{
 	}
 
 	/**
-	 * PxFWのインストール先パスを取得する。
+	 * PxFWのインストールパスを取得する。
+	 * 
+	 * PxFW は、ドキュメントルート直下以外のディレクトリにインストールすることもできます。インストールパスは、`_px_execute.php` が置かれているディレクトリです。
+	 * このメソッドは、ドキュメントルートからインストールパスまでの階層を文字列で返します。
+	 * 
 	 * @return string ドキュメントルートからのパス(スラッシュ閉じ)
 	 */
 	public function get_install_path(){
@@ -220,9 +297,10 @@ class px_px{
 	}//get_install_path()
 
 	/**
-	 * ローカルリソースディレクトリのパスを得る
-	 * @param $localpath_resource ローカルリソースのパス。
-	 * @return string ローカルリソースのパス
+	 * ローカルリソースディレクトリのパスを得る。
+	 * 
+	 * @param string $localpath_resource ローカルリソースのパス
+	 * @return string ローカルリソースの実際の絶対パス
 	 */
 	public function path_files( $localpath_resource = null ){
 		$tmp_page_info = $this->site()->get_page_info($this->req()->get_request_file_path());
@@ -241,8 +319,9 @@ class px_px{
 	}//path_files()
 
 	/**
-	 * ローカルリソースディレクトリのサーバー内部パスを得る
-	 * @param $localpath_resource ローカルリソースのパス。
+	 * ローカルリソースディレクトリのサーバー内部パスを得る。
+	 * 
+	 * @param string $localpath_resource ローカルリソースのパス
 	 * @return string ローカルリソースのサーバー内部パス
 	 */
 	public function realpath_files( $localpath_resource = null ){
@@ -255,8 +334,9 @@ class px_px{
 	}//realpath_files()
 
 	/**
-	 * ローカルリソースのキャッシュディレクトリのパスを得る
-	 * @param $localpath_resource ローカルリソースのパス。
+	 * ローカルリソースのキャッシュディレクトリのパスを得る。
+	 * 
+	 * @param string $localpath_resource ローカルリソースのパス
 	 * @return string ローカルリソースキャッシュのパス
 	 */
 	public function path_files_cache( $localpath_resource = null ){
@@ -269,7 +349,7 @@ class px_px{
 
 		$path_original = $this->get_install_path().$path_content;
 		$path_original = $this->dbh()->get_realpath($this->dbh()->trim_extension($path_original).'.files/'.$localpath_resource);
-		$rtn = $this->get_install_path().'/_caches/contents'.$path_content;
+		$rtn = $this->get_install_path().'/'.$this->get_conf('system.public_cache_dir').'/contents'.$path_content;
 		$rtn = $this->dbh()->get_realpath($this->dbh()->trim_extension($rtn).'.files/'.$localpath_resource);
 		if( file_exists( $_SERVER['DOCUMENT_ROOT'].$path_original ) ){
 			if( is_dir($_SERVER['DOCUMENT_ROOT'].$path_original) ){
@@ -285,8 +365,9 @@ class px_px{
 	}//path_files_cache()
 
 	/**
-	 * ローカルリソースのキャッシュディレクトリのサーバー内部パスを得る
-	 * @param $localpath_resource ローカルリソースのパス。
+	 * ローカルリソースのキャッシュディレクトリのサーバー内部パスを得る。
+	 * 
+	 * @param string $localpath_resource ローカルリソースのパス
 	 * @return string ローカルリソースキャッシュのサーバー内部パス
 	 */
 	public function realpath_files_cache( $localpath_resource = null ){
@@ -299,14 +380,16 @@ class px_px{
 	}//realpath_files_cache()
 
 	/**
-	 * テーマリソースディレクトリのパスを得る
+	 * テーマリソースディレクトリのパスを得る。
+	 * 
+	 * @param string $localpath_theme_resource テーマリソースのパス
 	 * @return string テーマリソースのパス
 	 */
 	public function path_theme_files( $localpath_theme_resource = null ){
 		$localpath_theme_resource = preg_replace('/^\/+/', '', $localpath_theme_resource);
 
 		$realpath_original = $this->realpath_theme_files().'/'.$localpath_theme_resource;
-		$realpath_copyto = $_SERVER['DOCUMENT_ROOT'].$this->get_install_path().'_caches/themes/'.$this->theme()->get_theme_id().'/'.$localpath_theme_resource;
+		$realpath_copyto = $_SERVER['DOCUMENT_ROOT'].$this->get_install_path().''.$this->get_conf('system.public_cache_dir').'/themes/'.$this->theme()->get_theme_id().'/'.$localpath_theme_resource;
 		if( is_file($realpath_original) ){
 			// 対象がファイルだったら
 			if( strtolower($this->dbh()->get_extension($realpath_copyto)) == 'nopublish' ){
@@ -316,7 +399,7 @@ class px_px{
 				// キャッシュを作成・更新。
 				$this->dbh()->mkdir_all( dirname($realpath_copyto) );
 				$this->dbh()->copy( $realpath_original, $realpath_copyto );
-				$this->add_relatedlink( $this->get_install_path().'_caches/themes/'.$this->theme()->get_theme_id().'/'.$localpath_theme_resource );
+				$this->add_relatedlink( $this->get_install_path().''.$this->get_conf('system.public_cache_dir').'/themes/'.$this->theme()->get_theme_id().'/'.$localpath_theme_resource );
 			}
 		}elseif( is_dir($realpath_original) ){
 			// 対象がディレクトリだったら
@@ -326,12 +409,14 @@ class px_px{
 			}
 		}
 
-		$rtn = $this->get_install_path().'_caches/themes/'.$this->theme()->get_theme_id().'/'.$localpath_theme_resource;
+		$rtn = $this->get_install_path().''.$this->get_conf('system.public_cache_dir').'/themes/'.$this->theme()->get_theme_id().'/'.$localpath_theme_resource;
 		return $rtn;
 	}//path_theme_files()
 
 	/**
 	 * テーマリソースのサーバー内部パスを得る。
+	 * 
+	 * @param string $localpath_theme_resource テーマリソースのパス
 	 * @return string テーマリソースのサーバー内部パス
 	 */
 	public function realpath_theme_files( $localpath_theme_resource = null ){
@@ -345,6 +430,8 @@ class px_px{
 
 	/**
 	 * カレントコンテンツのramdataディレクトリのサーバー内部パスを得る。
+	 * 
+	 * @return string RAMデータディレクトリのサーバー内部パス
 	 */
 	public function realpath_ramdata_dir(){
 		$tmp_page_info = $this->site()->get_page_info($this->req()->get_request_file_path());
@@ -360,6 +447,8 @@ class px_px{
 
 	/**
 	 * 選択されたテーマのramdataディレクトリのサーバー内部パスを得る。
+	 * 
+	 * @return string RAMデータディレクトリのサーバー内部パス
 	 */
 	public function realpath_theme_ramdata_dir(){
 		$lib_realpath = $this->get_conf('paths.px_dir').'_sys/ramdata/themes/'.$this->theme()->get_theme_id().'/';
@@ -372,6 +461,9 @@ class px_px{
 
 	/**
 	 * プラグインのramdataディレクトリのサーバー内部パスを得る。
+	 * 
+	 * @param string $plugin_name プラグイン名
+	 * @return string RAMデータディレクトリのサーバー内部パス
 	 */
 	public function realpath_plugin_ramdata_dir($plugin_name){
 		$lib_realpath = $this->get_conf('paths.px_dir').'_sys/ramdata/plugins/'.$plugin_name.'/';
@@ -384,6 +476,8 @@ class px_px{
 
 	/**
 	 * カレントコンテンツのプライベートキャッシュディレクトリのサーバー内部パスを得る。
+	 * 
+	 * @return string プライベートキャッシュディレクトリのサーバー内部パス
 	 */
 	public function realpath_private_cache_dir(){
 		$tmp_page_info = $this->site()->get_page_info($this->req()->get_request_file_path());
@@ -399,6 +493,8 @@ class px_px{
 
 	/**
 	 * 選択されたテーマのプライベートキャッシュディレクトリのサーバー内部パスを得る。
+	 * 
+	 * @return string プライベートキャッシュディレクトリのサーバー内部パス
 	 */
 	public function realpath_theme_private_cache_dir(){
 		$lib_realpath = $this->get_conf('paths.px_dir').'_sys/caches/themes/'.$this->theme()->get_theme_id().'/';
@@ -411,6 +507,9 @@ class px_px{
 
 	/**
 	 * プラグインのプライベートキャッシュディレクトリのサーバー内部パスを得る。
+	 * 
+	 * @param string $plugin_name プラグイン名
+	 * @return string プライベートキャッシュディレクトリのサーバー内部パス
 	 */
 	public function realpath_plugin_private_cache_dir($plugin_name){
 		$lib_realpath = $this->get_conf('paths.px_dir').'_sys/caches/plugins/'.$plugin_name.'/';
@@ -422,7 +521,53 @@ class px_px{
 	}
 
 	/**
-	 * 外部ソースをインクルードする(ServerSideInclude)
+	 * 外部ソースをインクルードする。(ServerSideInclude)
+	 * 
+	 * このメソッドは、SSI(サーバーサイドインクルード)のように、指定したファイルを埋め込むときに使用します。
+	 * 
+	 * 引数の <code>$path_incfile</code> は、`DOCUMENT_ROOT` を起点とした絶対パスで指定します。PxFWのインストールパスではありません。
+	 * 
+	 * PHP の `include()` 関数も使用できますが、`include()` で読み込んだソースは、
+	 * パブリッシュ時に静的に記述されたものとして出力されます。 `$px->ssi()` は、
+	 * ブラウザでプレビューするときはインクルードされた状態で、
+	 * パブリッシュするときは、Apache の SSI の記述として出力する点が、`include()` と大きく挙動が異なる点です。
+	 * 
+	 * デフォルトでは、 `$px->ssi()` は、インクルードファイルをスタティックな文字列として取り扱います。
+	 * 従って、インクルードファイル内でさらに別のファイルをインクルードしたい場合に、期待通りに動作しません。
+	 * 
+	 * PxFW 1.0.3 以降、コンフィグ項目 `system.ssi_method` を設定して、いくつかの方法で多重インクルードを実装することができるようになりました。
+	 * 
+	 * `system.ssi_method` の設定値と挙動の対応は次の通りです。
+	 * 
+	 * - `http` : 
+	 * インクルードファイルをHTTP通信経由で取りに行きます。
+	 * あくまで内部処理ではないため、インクルードファイル内でインクルードを動かしたい場合には、
+	 * インクルードファイルの拡張子をApacheで設定する必要があります。
+	 *  
+	 * - `php_include` : 
+	 * インクルードファイルはPHPスクリプトとして動的に読み込まれます。
+	 * "http" 設定では、IP制限など基本認証以外の制限があったり、
+	 * Apacheのプロセスが増えて動作が重くなる場合などに使えるかもしれません。
+	 * ただしその場合、
+	 * 拡張子 `*.html` 以外のインクルードファイルでは、プレビュー時にインクルードが処理されない点と、
+	 * プレビュー時とパブリッシュ時で処理の流れが異なるため、設定ミスなどに気づきにくい点が欠点です。
+	 * 
+	 * - `php_virtual` : 
+	 * PHPの virtual() メソッドは、Apacheのサブクエリを発行するので、
+	 * インクルードファイル内でのSSIが処理されます。
+	 * しかし、output bufferを無効にしてしまう副作用があるため、
+	 * PxFWの `output_filter` などの後処理を通らなくなる欠点があります。
+	 * 
+	 * - `emulate_ssi` (PxFW 1.0.4以降) : 
+	 * Apache SSI 形式をエミュレートし、擬似的にインクルードを解決します。
+	 * SSI が持つ機能のうち、`<!--#include virtual="〜〜" -->` 以外の命令は無視されます。
+	 * 
+	 * - `static` (デフォルト) : 
+	 * インクルードファイルはスタティックなテキストとして読み込まれます。
+	 * インクルードファイル内でのインクルードはできません。
+	 * 
+	 * @param string $path_incfile インクルードするファイルパス(DOCUMENT_ROOT を起点とした絶対パス)
+	 * @return string インクルードファイルのコンテンツ、パブリッシュ時は インクルードタグ
 	 */
 	public function ssi( $path_incfile ){
 		//	パブリッシュツール(PxCrawlerなど)による静的パブリッシュを前提としたSSI処理機能。
@@ -433,12 +578,91 @@ class px_px{
 		$RTN = '';
 		$path_incfile = $this->dbh()->get_realpath( $path_incfile );
 		if( $this->user()->is_publishtool() ){
-			#	パブリッシュツールだったら、SSIタグを出力する。
+			// パブリッシュツールだったら、SSIタグを出力する。
 			$RTN .= $this->ssi_static_tag( $path_incfile );
 		}else{
 			if( $this->dbh()->is_file( $_SERVER['DOCUMENT_ROOT'].$path_incfile ) && $this->dbh()->is_readable( $_SERVER['DOCUMENT_ROOT'].$path_incfile ) ){
-				$RTN .= $this->dbh()->file_get_contents( $_SERVER['DOCUMENT_ROOT'].$path_incfile );
+
+				$ssi_method = $this->get_conf('system.ssi_method');
+				if( !strlen($ssi_method) ){ $ssi_method = 'static'; }
+				$done = false;
+
+				// ------ PxFW 1.0.3 で追加したオプション ------
+				if( $ssi_method == 'http' ){
+					$done = true;
+					$url = 'http'.($this->req()->is_ssl()?'s':'').'://'.$_SERVER['HTTP_HOST'].$this->dbh()->get_realpath($path_incfile);
+
+					@require_once( $this->get_conf('paths.px_dir').'libs/PxHTTPAccess/PxHTTPAccess.php' );
+					$httpaccess = new PxHTTPAccess();
+					$httpaccess->clear_request_header();//初期化
+					$httpaccess->set_url( $url );//ダウンロードするURL
+					$httpaccess->set_method( 'GET' );//メソッド
+					$httpaccess->set_user_agent( $_SERVER['HTTP_USER_AGENT'] );//HTTP_USER_AGENT
+					if( strlen( $this->get_conf('project.auth_name') ) ){
+						// 基本認証、またはダイジェスト認証が設定されている場合
+						if( strlen( $this->get_conf('project.auth_type') ) ){
+							$httpaccess->set_auth_type( $this->get_conf('project.auth_type') );//認証タイプ
+						}
+						$httpaccess->set_auth_user( $this->get_conf('project.auth_name') );//認証ID
+						$httpaccess->set_auth_pw( $this->get_conf('project.auth_password') );//認証パスワード
+					}
+					$this->dbh()->mkdir_all( dirname($this->path_tmppublish_dir.'/htdocs/'.$path) );
+					$RTN .= $httpaccess->get_http_contents();//ダウンロードを実行する
+				}
+
+				// ------ PxFW 1.0.3 で追加したオプション ------
+				if( $ssi_method == 'php_include' ){
+					$done = true;
+					$px = &$this;
+					$memo_page_info = $px->site()->get_current_page_info();
+
+					ob_start();
+					@include( $_SERVER['DOCUMENT_ROOT'].$path_incfile );
+					$RTN .= ob_get_clean();
+
+					$px->site()->set_page_info(null, array('layout'=>$memo_page_info['layout']) );
+				}
+
+				// ------ PxFW 1.0.3 で追加したオプション ------
+				if( $ssi_method == 'php_virtual' ){
+					$done = true;
+					ob_start();
+					virtual($path_incfile);
+					$RTN .= ob_get_clean();
+				}
+
+				// ------ PxFW 1.0.4 で追加したオプション ------
+				if( $ssi_method == 'emulate_ssi' ){
+					$done = true;
+					$px = $this;
+					$tmp_src = $this->dbh()->file_get_contents( $_SERVER['DOCUMENT_ROOT'].$path_incfile );
+					while(1){
+						$tmp_preg_pattern = '/^(.*?)'.preg_quote('<!--#include','/').'\s+virtual\=\"(.*?)\"\s*'.preg_quote('-->','/').'(.*)$/s';
+						if( !preg_match($tmp_preg_pattern, $tmp_src, $tmp_matched) ){
+							$RTN .= $tmp_src;
+							break;
+						}
+						$RTN .= $tmp_matched[1];
+						$RTN .= $this->ssi($this->theme()->href($tmp_matched[2]));
+						$tmp_src = $tmp_matched[3];
+						continue;
+					}
+					$RTN .= $tmpSrc;
+				}
+
+				// ------ PxFW 1.0.2 までの実装 ------
+				if( $ssi_method == 'static' ){
+					$done = true;
+					// デフォルトの処理
+					$RTN .= $this->dbh()->file_get_contents( $_SERVER['DOCUMENT_ROOT'].$path_incfile );
+				}
+
 				$RTN = t::convert_encoding($RTN);
+
+				if( !$done ){
+					// ERROR: 設定が正しくありません。
+					$RTN .= '<!-- ERROR: unknown config "system.ssi_method" '.t::h($ssi_method).' -->';
+				}
 			}
 		}
 		return	$RTN;
@@ -446,42 +670,62 @@ class px_px{
 
 	/**
 	 * パブリッシュ時のSSIタグを出力する。
-	 * ssi() からコールされる。
+	 * 
+	 * このメソッドは、`$px->ssi()` から内部的にコールされます。
+	 * 
+	 * @param string $path_incfile インクルードするファイルパス(DOCUMENT_ROOT を起点とした絶対パス)
+	 * @return string インクルードタグ
 	 */
-	private function ssi_static_tag( $path ){
+	private function ssi_static_tag( $path_incfile ){
 		$plugins_list = $this->dbh()->ls( $this->get_conf('paths.px_dir').'plugins/' );
 		foreach( $plugins_list as $tmp_plugin_name ){
 			// プラグイン内のextensionを検索
 			$tmp_class_name = $this->load_px_plugin_class( $tmp_plugin_name.'/register/funcs.php' );
 			if( strlen($tmp_class_name) && method_exists( $tmp_class_name, 'ssi_static_tag' ) ){
 				$obj = new $tmp_class_name($this);
-				return $obj->ssi_static_tag( $path );
+				return $obj->ssi_static_tag( $path_incfile );
 				break;
 			}
 		}
 		unset($tmp_class_name, $tmp_plugin_name);
-		return '<!--#include virtual="'.htmlspecialchars( $path ).'" -->';
+
+		// $ssi_method = $this->get_conf('system.ssi_method');
+		// if( !strlen($ssi_method) ){ $ssi_method = 'static'; }
+		// if( $ssi_method == 'php_include' ){
+		// 	return '<'.'?php include( $_SERVER[\'DOCUMENT_ROOT\'].'.t::data2phpsrc( $path_incfile ).' ); ?'.'>';
+		// }
+		return '<!--#include virtual="'.htmlspecialchars( $path_incfile ).'" -->';
 	}//ssi_static_tag()
 
 	/**
 	 * PXコマンドを解析する。
-	 * @param string URLパラメータ PX に受け取った値
-	 * @return array 先頭にPXコマンド名を含むパラメータの配列(入力値をドットで区切ったもの)
+	 * 
+	 * PXコマンドは、URLパラメータに `?PX=xxxxx` として受け取ります。このメソッドは、`PX` パラメータを解析し、コマンドを配列に格納して返します。
+	 *
+	 * 設定 `system.allow_pxcommands` が `0` に設定されていて、かつウェブからのアクセス(コマンドラインの実行ではなく)の場合は、PXコマンドは利用できません。 PXコマンドが利用できない場合、このメソッドは `null` を返します。
+	 * 
+	 * @param string $param URLパラメータ PX に受け取った値
+	 * @return array|null 先頭にPXコマンド名を含むパラメータの配列(入力値をドットで区切ったもの)。PXコマンドが利用できない場合は、`null`
 	 */
 	private function parse_pxcommand( $param ){
 		if( !$this->get_conf('system.allow_pxcommands') ){
-			//  設定で許可されていない場合は、常に null
-			return null;
+			// 設定で許可されていない場合は、null
+			if( !$this->req()->is_cmd() ){
+				// コマンドラインの場合、この設定は無効
+				return null;
+			}
 		}
 		if( !strlen( $param ) ){
 			//  パラメータ値が付いていなければ、null
 			return null;
 		}
 		return explode( '.' , $param );
-	}
+	}//parse_pxcommand()
 
 	/**
-	 * PHP設定をチューニング。
+	 * PHP設定をチューニングする。
+	 * 
+	 * @return bool 常に `true`
 	 */
 	private function php_setup(){
 		if( !extension_loaded( 'mbstring' ) ){
@@ -500,59 +744,126 @@ class px_px{
 			@mb_detect_order( 'UTF-8,SJIS-win,eucJP-win,SJIS,EUC-JP,JIS,ASCII' );
 		}
 
-		//  ドキュメントルートへカレントディレクトリを移動する。
-		chdir( realpath( $conf->path_docroot ) );
-
 		return true;
 	}//php_setup();
 
 	/**
-	 * コンフィグ値のロード
+	 * コンフィグ値をロードする。
+	 *
+	 * @param string $path_mainconf コンフィグファイルの格納パス
+	 * @param array $default 読み込み前のコンフィグ値。(`_include` により再帰的にファイルを読み込む場合にセットされる)
+	 * @return array 読み込んだ設定値を格納した連想配列
 	 */
-	private function load_conf( $path_mainconf ){
-		$conf = array();
-		if( !is_file($path_mainconf) ){ return $conf; }
-		if( !is_readable($path_mainconf) ){ return $conf; }
+	private function load_conf( $path_mainconf, $default = array() ){
+		if( !is_file($path_mainconf) ){
+			if( count($default) ){ return $default; }
+			print '[error] your config file &quot;'.htmlspecialchars( $path_mainconf ).'&quot; is not exits. set your true config file path.';
+			exit();
+		}
+		if( !is_readable($path_mainconf) ){
+			if( count($default) ){ return $default; }
+			print '[error] your config file &quot;'.htmlspecialchars( $path_mainconf ).'&quot; is not readable. set your config file as &quot;readable&quot;.';
+			exit();
+		}
+
+		$conf = array(
+			// デフォルト値セット
+			'project.id'=>"pxfw",
+			'paths.px_dir'=>"./_PX/",
+			'colors.main'=>"#00a0e6",
+			'publish_extensions.html'=>"http",
+			'publish_extensions.css'=>"http",
+			'publish_extensions.js'=>"http",
+			'publish_extensions.php'=>"copy",
+			'publish_extensions.nopublish'=>"nopublish",
+			'publish_extensions.inc'=>"include_text",
+			'system.allow_pxcommands'=>"0",
+			'system.session_name'=>"PXSID",
+			'system.session_expire'=>"1800",
+			'system.filesystem_encoding'=>"UTF-8",
+			'system.default_theme_id'=>"default",
+			'system.file_default_permission'=>"775",
+			'system.dir_default_permission'=>"775",
+			'system.public_cache_dir'=>"_caches",
+			'system.ssi_method'=>"static",
+		);
+		if( is_array($default) && count($default) ){
+			// デフォルトの配列を受け取ったら、それでリセット
+			$conf = $default;
+		}
+
 		$tmp_conf = parse_ini_file( $path_mainconf , true );
 		foreach ($tmp_conf as $key1=>$row1) {
 			if( is_array($row1) ){
 				foreach ($row1 as $key2=>$val) {
 					if( $key2 == '_include' ){
-						$tmp_conf = $this->load_conf( $val );
-						$conf = array_merge($conf, $tmp_conf);
+						$conf = $this->load_conf( $val, $conf );
 					}else{
 						$conf[$key1.'.'.$key2] = $val;
 					}
 				}
 			}else{
 				if( $key1 == '_include' ){
-					$tmp_conf = $this->load_conf( $row1 );
-					$conf = array_merge($conf, $tmp_conf);
+					$conf = $this->load_conf( $row1, $conf );
 				}else{
 					$conf[$key1] = $row1;
 				}
 			}
 		}
 		unset( $tmp_conf , $key1 , $row1 , $key2 , $val );
+
+		// 安全装置
+		if( strlen( $conf['system.file_default_permission'] ) != 3 ){ $conf['system.file_default_permission'] = '775'; }
+		if( strlen( $conf['system.dir_default_permission'] ) != 3 ){ $conf['system.dir_default_permission'] = '775'; }
+		if( !strlen( $conf['project.id'] ) ){ $conf['project.id'] = 'pxfw'; }
+		if( !strlen( $conf['system.default_theme_id'] ) ){ $conf['system.default_theme_id'] = 'default'; }
+		if( !strlen( $conf['system.public_cache_dir'] ) ){ $conf['system.public_cache_dir'] = '_caches'; }
+
+		if( !is_dir( $conf['paths.px_dir'] ) ){
+			print '[error] paths.px_dir is not a directory. check your config file &quot;'.htmlspecialchars( realpath($path_mainconf) ).'&quot;.';
+			exit();
+		}
+		if( is_dir( $conf['paths.px_dir'].'_sys/' ) ){
+			if( !is_dir( $conf['paths.px_dir'].'_sys/applock/' ) ){ @mkdir($conf['paths.px_dir'].'_sys/applock/'); }
+			if( !is_dir( $conf['paths.px_dir'].'_sys/caches/' ) ){ @mkdir($conf['paths.px_dir'].'_sys/caches/'); }
+			if( !is_dir( $conf['paths.px_dir'].'_sys/publish/' ) ){ @mkdir($conf['paths.px_dir'].'_sys/publish/'); }
+			if( !is_dir( $conf['paths.px_dir'].'_sys/ramdata/' ) ){ @mkdir($conf['paths.px_dir'].'_sys/ramdata/'); }
+		}
+
 		return $conf;
 	}//load_conf()
 
 	/**
-	 * コンフィグ値を出力。
+	 * コンフィグ値を取得する。
+	 * 
+	 * コンフィグ配列から値を取り出します。
+	 * 
+	 * 実装例:
+	 * <pre>&lt;?php
+	 * // プロジェクト名(=サイト名) を取り出す
+	 * $project_name = $px-&gt;get_conf('project.name');
+	 * ?&gt;</pre>
+	 * 
+	 * @param string $key コンフィグ名
+	 * @return mixed `$key` に対応する値
 	 */
 	public function get_conf( $key ){
+		if(!array_key_exists($key, $this->conf)){ return null; }
 		return $this->conf[$key];
 	}//get_conf()
 
 	/**
-	 * コンフィグファイルのパスを取得する
+	 * コンフィグファイルのパスを取得する。
+	 * 
+	 * @return string コンフィグファイルのパス
 	 */
 	public function get_path_conf(){
 		return $this->path_mainconf;
 	}
 
 	/**
-	 * 全てのコンフィグ値を出力。
+	 * 全てのコンフィグ値を取得する。
+	 * 
 	 * @return すべての値が入ったコンフィグの連想配列
 	 */
 	public function get_conf_all(){
@@ -560,7 +871,9 @@ class px_px{
 	}//get_conf_all()
 
 	/**
-	 * directory_index の一覧を得る
+	 * directory_index の一覧を得る。
+	 * 
+	 * @return array ディレクトリインデックスの一覧
 	 */
 	public function get_directory_index(){
 		if( count($this->directory_index) ){
@@ -580,7 +893,10 @@ class px_px{
 	}//get_directory_index()
 
 	/**
-	 * directory_index のいずれかにマッチするためのpregパターン式を得る
+	 * directory_index のいずれかにマッチするためのpregパターン式を得る。
+	 * 
+	 * @param string $delimiter pregパターンのデリミタ。省略時は `/` (`preg_quote()` の実装に従う)。
+	 * @return string pregパターン
 	 */
 	public function get_directory_index_preg_pattern( $delimiter = null ){
 		$directory_index = $this->get_directory_index();
@@ -592,7 +908,9 @@ class px_px{
 	}//get_directory_index_preg_pattern()
 
 	/**
-	 * 最も優先されるインデックスファイル名を得る
+	 * 最も優先されるインデックスファイル名を得る。
+	 * 
+	 * @return string 最も優先されるインデックスファイル名
 	 */
 	public function get_directory_index_primary(){
 		$directory_index = $this->get_directory_index();
@@ -600,10 +918,16 @@ class px_px{
 	}//get_directory_index_primary()
 
 	/**
-	 * コアライブラリのインスタンス生成。
-	 * @return true
+	 * コアライブラリのインスタンスを生成する。
+	 * 
+	 * @return bool 常に `true`
 	 */
 	private function create_core_instances(){
+		// composer ライブラリをロード (PxFW 1.0.4 追加)
+		if( is_file($this->get_conf('paths.px_dir').'libs/composer/vendor/autoload.php') ){
+			require_once( $this->get_conf('paths.px_dir').'libs/composer/vendor/autoload.php' );
+		}
+
 		//  スタティックメソッドをロード
 		require_once( $this->get_conf('paths.px_dir').'_FW/statics/t.php' );
 		require_once( $this->get_conf('paths.px_dir').'_FW/statics/test.php' );
@@ -637,7 +961,12 @@ class px_px{
 
 	/**
 	 * extensionsの一覧を取得する。
-	 * @return array
+	 *
+	 * このメソッドは、フレームワークディレクトリ `_FW` の `extensions` を検索し、定義された拡張子の一覧を返します。
+	 * 
+	 * PxFW 1.0.4 以降、プラグインが定義する extension も検出するようになりました。
+	 * 
+	 * @return array extensions の一覧
 	 */
 	public function get_extensions_list(){
 		$ary = $this->dbh()->ls( $this->get_conf('paths.px_dir').'_FW/extensions/' );
@@ -645,50 +974,73 @@ class px_px{
 		foreach( $ary as $row ){
 			$ext = t::trimext($row);
 			if(!strlen($ext)){continue;}
+			if(in_array($ext, $rtn)){continue;}
 			array_push( $rtn , $ext );
 		}
+
+		// プラグインが定義する独自の拡張子も探す (PxFW 1.0.4以降)
+		$plugins_list = $this->get_plugin_list();
+		foreach( $plugins_list as $tmp_plugin_name=>$tmp_plugin_info ){
+			$ary = $this->dbh()->ls( $this->get_conf('paths.px_dir').'plugins/'.urlencode($tmp_plugin_name).'/register/extensions/' );
+			if( !is_array($ary) || !count($ary) ){ continue; }
+			foreach( $ary as $row ){
+				$ext = t::trimext($row);
+				if(!strlen($ext)){continue;}
+				if(in_array($ext, $rtn)){continue;}
+				array_push( $rtn , $ext );
+			}
+		}
+
 		return $rtn;
 	}//get_extensions_list()
 
 	/**
 	 * コアオブジェクト $dbh にアクセスする。
-	 * @return $dbhオブジェクト
+	 * @return object $dbhオブジェクト
 	 */
 	public function &dbh(){ return $this->obj_dbh; }
 
 	/**
 	 * コアオブジェクト $error にアクセスする。
-	 * @return $errorオブジェクト
+	 * @return object $errorオブジェクト
 	 */
 	public function &error(){ return $this->obj_error; }
 
 	/**
 	 * コアオブジェクト $req にアクセスする。
-	 * @return $reqオブジェクト
+	 * @return object $reqオブジェクト
 	 */
 	public function &req(){ return $this->obj_req; }
 
 	/**
 	 * コアオブジェクト $site にアクセスする。
-	 * @return $siteオブジェクト
+	 * @return object $siteオブジェクト
 	 */
 	public function &site(){ return $this->obj_site; }
 
 	/**
 	 * コアオブジェクト $theme にアクセスする。
-	 * @return $themeオブジェクト
+	 * @return object $themeオブジェクト
 	 */
 	public function &theme(){ return $this->obj_theme; }
 
 	/**
 	 * コアオブジェクト $user にアクセスする。
-	 * @return $userオブジェクト
+	 * @return object $userオブジェクト
 	 */
 	public function &user(){ return $this->obj_user; }
 
 	/**
 	 * PxFWのクラスファイルをロードする。
 	 * 
+	 * 実装例:
+	 * <pre>&lt;?php
+	 * $class_name = $px-&gt;load_px_class('/styles/finalizer.php');
+	 * $finalizer = new $class_name($px);
+	 * ?&gt;</pre>
+	 * 
+	 * @param string $path `_FW` ディレクトリを起点としたクラスファイルのパス
+	 * @return string ロードしたクラスのクラス名
 	 */
 	public function load_px_class($path){
 		//戻り値は、ロードしたクラス名
@@ -713,7 +1065,15 @@ class px_px{
 
 	/**
 	 * PX Plugin のクラスファイルをロードする。
-	 * @return 読み込んだクラス名(string)
+	 * 
+	 * 実装例:
+	 * <pre>&lt;?php
+	 * $class_name = $px-&gt;load_px_plugin_class('/($plugin_name)/hoge/fuga.php');
+	 * $foo = new $class_name();
+	 * ?&gt;</pre>
+	 * 
+	 * @param string $path `plugins` ディレクトリを起点としたクラスファイルのパス
+	 * @return string ロードしたクラスのクラス名
 	 */
 	public function load_px_plugin_class($path){
 		//戻り値は、ロードしたクラス名
@@ -737,7 +1097,10 @@ class px_px{
 	}//load_px_plugin_class()
 
 	/**
-	 * プラグインオブジェクトを取り出す
+	 * プラグインオブジェクトを取り出す。
+	 * 
+	 * @param string $plugin_name プラグイン名
+	 * @return object|bool 成功した場合にプラグインオブジェクト、失敗時に `false`
 	 */
 	public function get_plugin_object( $plugin_name ){
 		if( !strlen($plugin_name) ){return false;}
@@ -757,7 +1120,9 @@ class px_px{
 	}//get_plugin_object()
 
 	/**
-	 * プラグインの一覧を得る
+	 * プラグインの一覧を得る。
+	 * 
+	 * @return array プラグイン名の一覧
 	 */
 	public function get_plugin_list(){
 		static $rtn = null;
@@ -767,7 +1132,7 @@ class px_px{
 		$rtn = array();
 		$tmp_path_plugins_base_dir = $this->get_conf('paths.px_dir').'plugins/';
 		$items = $this->dbh()->ls($tmp_path_plugins_base_dir);
-		sort($items, SORT_NATURAL|SORT_FLAG_CASE);//名前順に並び替え。検索の順番を保証するため。
+		usort($items, "strnatcmp");//名前順に並び替え。検索の順番を保証するため。
 		foreach( $items as $base_name ){
 			if( !is_dir($tmp_path_plugins_base_dir.$base_name) ){
 				continue;
@@ -781,6 +1146,9 @@ class px_px{
 
 	/**
 	 * PxFWのテーマが定義するクラスファイルをロードする。
+	 * 
+	 * @param string $path テーマ固有の `_FW` ディレクトリを起点としたクラスファイルのパス
+	 * @return string ロードしたクラスのクラス名
 	 */
 	public function load_pxtheme_class($path){
 		//戻り値は、ロードしたクラス名
@@ -805,8 +1173,10 @@ class px_px{
 	}//load_pxtheme_class()
 
 	/**
-	 * 現在のアドレスへのhrefを得る
-	 * @param array|string $params GETパラメータとして付加する値。連想配列(例：array('key'=>'val','key2'=>'val2'))または文字列(例:'key=val&key2=val2')で指定。
+	 * 現在のアドレスへのhrefを得る。
+	 * 
+	 * @param array|string $params GETパラメータとして付加する値。連想配列(例：`array('key'=>'val','key2'=>'val2')`)または文字列(例:`'key=val&key2=val2'`)で指定。
+	 * @return string href属性値
 	 */
 	public function href_self( $params = null ){
 		$rtn = $this->theme()->href($this->req()->get_request_file_path());
@@ -825,12 +1195,18 @@ class px_px{
 			}
 		}
 		return $rtn;
-	}
+	}//href_self()
 
 	/**
-	 * リダイレクトする
+	 * リダイレクトする。
+	 * 
+	 * このメソッドは、`Location` HTTPヘッダーを出力します。
+	 * リダイレクトヘッダーを出力したあと、`exit()`を発行してスクリプトを終了します。
+	 * 
+	 * @param string $redirect_to リダイレクト先のURL
+	 * @return void
 	 */
-	public function redirect( $redirect_to , $options = array() ){
+	public function redirect( $redirect_to ){
 		while( @ob_end_clean() );
 
 		@header( 'Content-type: text/html; charset=UTF-8');
@@ -856,12 +1232,17 @@ class px_px{
 
 	/**
 	 * Not Found画面を出力する。
+	 * 
+	 * このメソッドは、404 Not Found 画面を出力します。
+	 * 画面出力後、`exit()` を発行してスクリプトを終了します。
+	 * 
+	 * @return void
 	 */
 	public function page_notfound(){
 		while( @ob_end_clean() );
 
 		header('HTTP/1.1 404 NotFound');
-		$this->site()->set_page_info( $this->req()->get_request_file_path(), array('title'=>'404 Not found.') );
+		$this->site()->set_page_info( $this->req()->get_request_file_path(), array('title'=>'404 Not found.', 'list_flg'=>0, 'category_top_flg'=>0) );
 		$fin = '';
 		$fin .= '<p>'."\n";
 		$fin .= 'お探しのページは見つかりませんでした。<br />'."\n";
@@ -872,6 +1253,11 @@ class px_px{
 
 	/**
 	 * Forbidden画面を出力する。
+	 * 
+	 * このメソッドは、403 Forbidden 画面を出力します。
+	 * 画面出力後、`exit()` を発行してスクリプトを終了します。
+	 * 
+	 * @return void
 	 */
 	public function page_forbidden(){
 		while( @ob_end_clean() );
@@ -887,6 +1273,11 @@ class px_px{
 
 	/**
 	 * ログイン画面を出力する。
+	 * 
+	 * このメソッドは、PxFW固有のログイン画面を出力します。
+	 * 画面出力後、`exit()` を発行してスクリプトを終了します。
+	 * 
+	 * @return void
 	 */
 	public function page_login(){
 		while( @ob_end_clean() );
@@ -912,9 +1303,18 @@ class px_px{
 	}//page_login()
 
 	/**
-	 * ダウンロードファイルを出力する
+	 * ダウンロードファイルを出力する。
+	 * 
+	 * このメソッドは、403 Forbidden 画面を出力します。
+	 * ファイル出力後、`exit()` を発行してスクリプトを終了します。
+	 * 
+	 * Content-type は $options で変更できます。デフォルトはファイルの種類や拡張子に関わらず `application/octet-stream` が出力されます。
+	 * 
+	 * @param string $bin ダウンロードするファイルのバイナリ
+	 * @param array $options オプション
+	 * @return void
 	 */
-	public function download( $bin , $option = array() ){
+	public function download( $bin , $options = array() ){
 		if( is_bool( $bin ) ){ $bin = 'bool( '.text::data2text( $bin ).' )'; }
 		if( is_resource( $bin ) ){ $bin = 'A Resource.'; }
 		if( is_array( $bin ) ){ $bin = 'An Array.'; }
@@ -931,14 +1331,14 @@ class px_px{
 			@header( 'Pragma: public' );
 		}
 
-		if( strlen( $option['content-type'] ) ){
-			$contenttype = $option['content-type'];
+		if( strlen( $options['content-type'] ) ){
+			$contenttype = $options['content-type'];
 		}else{
 			$contenttype = 'application/octet-stream';
 		}
 		if( strlen( $contenttype ) ){
-			if( strlen( $option['charset'] ) ){
-				$contenttype .= '; charset='.$option['charset'];
+			if( strlen( $options['charset'] ) ){
+				$contenttype .= '; charset='.$options['charset'];
 			}
 			@header( 'Content-type: '.$contenttype );
 		}
@@ -948,9 +1348,9 @@ class px_px{
 			@header( 'Content-Length: '.strlen( $bin ) );
 		}
 
-		if( strlen( $option['filename'] ) ){
+		if( strlen( $options['filename'] ) ){
 			#	ダウンロードファイル名
-			@header( 'Content-Disposition: attachment; filename='.$option['filename'] );
+			@header( 'Content-Disposition: attachment; filename='.$options['filename'] );
 		}
 
 		print $bin;
@@ -958,12 +1358,18 @@ class px_px{
 	}//download()
 
 	/**
-	 * ディスク上のファイルを標準出力する
+	 * ディスク上のファイルを標準出力する。
+	 * 
+	 * Content-type は $options で変更できます。デフォルトはファイルの種類や拡張子に関わらず `application/octet-stream` が出力されます。
+	 * 
+	 * @param string $filepath 出力するファイルのパス
+	 * @param array $options オプション
+	 * @return void
 	 */
-	public function flush_file( $filepath , $option = array() ){
+	public function flush_file( $filepath , $options = array() ){
 		#--------------------------------------
 		#	$filepath => 出力するファイルのパス
-		#	$option => オプションを示す連想配列
+		#	$options => オプションを示す連想配列
 		#		'content-type'=>Content-type ヘッダー文字列。(第二引数よりも弱い。ほか関数との互換性のため実装)
 		#		'charset'=>Content-type ヘッダー文字列に、文字コード文字列を追加
 		#		'filename'=>ダウンロードさせるファイル名。
@@ -991,14 +1397,14 @@ class px_px{
 			@header( 'Pragma: public' );
 		}
 
-		if( strlen( $option['content-type'] ) ){
-			$contenttype = $option['content-type'];
+		if( strlen( $options['content-type'] ) ){
+			$contenttype = $options['content-type'];
 		}else{
 			$contenttype = 'application/octet-stream';
 		}
 		if( strlen( $contenttype ) ){
-			if( strlen( $option['charset'] ) ){
-				$contenttype .= '; charset='.$option['charset'];
+			if( strlen( $options['charset'] ) ){
+				$contenttype .= '; charset='.$options['charset'];
 			}
 			@header( 'Content-type: '.$contenttype );
 		}
@@ -1006,9 +1412,9 @@ class px_px{
 		#	ダウンロードの容量
 		@header( 'Content-Length: '.filesize( $filepath ) );
 
-		if( strlen( $option['filename'] ) ){
+		if( strlen( $options['filename'] ) ){
 			#	ダウンロードファイル名
-			@header( 'Content-Disposition: attachment; filename='.$option['filename'] );
+			@header( 'Content-Disposition: attachment; filename='.$options['filename'] );
 		}
 
 		#	ファイルを出力
@@ -1017,7 +1423,7 @@ class px_px{
 			return	false;
 		}
 
-		if( $option['delete'] ){
+		if( $options['delete'] ){
 			#	deleteオプションが指定されていたら、
 			#	ダウンロード後のファイルを削除する。
 			$this->dbh()->rm( $filepath );
@@ -1028,6 +1434,18 @@ class px_px{
 
 	/**
 	 * アクセスログを記録する。
+	 *
+	 * このメソッドはアクセスログを記録します。PxFWにより自動的にキックされます。
+	 * 
+	 * アクセスログは、コンフィグ `paths.access_log` に設定されたファイルに追記されます。
+	 * 
+	 * この設定が空白の場合、
+	 * 設定されたファイルが存在せず親ディレクトリに書き込み権限がない場合、
+	 * 設定されたファイルおよび親ディレクトリも存在しない場合、
+	 * 設定されたファイルに上書き権限がない場合に、
+	 * 記録は失敗し、`false` が返されます。
+	 * 
+	 * @return bool 成功時 `true`、失敗時 `false`
 	 */
 	private function access_log(){
 		if( !strlen( $this->get_conf('paths.access_log') ) ){

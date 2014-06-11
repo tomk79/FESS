@@ -1,16 +1,28 @@
 <?php
+/**
+ * class px_pxcommands_plugins
+ * 
+ * @author Tomoya Koyanagi <tomk79@gmail.com>
+ */
 $this->load_px_class('/bases/pxcommand.php');
 
 /**
  * PX Command: pluginsを実行する
+ * 
  * @author Tomoya Koyanagi <tomk79@gmail.com>
  */
 class px_pxcommands_plugins extends px_bases_pxcommand{
 
+	/**
+	 * プラグインディレクトリのパス
+	 */
 	private $path_plugin_dir;
 
 	/**
 	 * コンストラクタ
+	 * 
+	 * @param array $command PXコマンド名
+	 * @param object $px $pxオブジェクト
 	 */
 	public function __construct( $command , $px ){
 		parent::__construct( $command , $px );
@@ -29,6 +41,12 @@ class px_pxcommands_plugins extends px_bases_pxcommand{
 
 	/**
 	 * ホームページを表示する。
+	 * 
+	 * 認識されている、`pxcommand.php` を有するすべてのプラグインの一覧を表示します。
+	 * 
+	 * HTMLを標準出力した後、`exit()` を発行してスクリプトを終了します。
+	 * 
+	 * @return void
 	 */
 	private function homepage(){
 		$command = $this->get_command();
@@ -59,8 +77,14 @@ class px_pxcommands_plugins extends px_bases_pxcommand{
 
 	/**
 	 * Execute PX Command "plugins".
+	 * 
+	 * `$command[1]` にセットされたプラグインの `pxcommand.php` を実行します。
+	 * 
+	 * プラグインの `pxcommand.php` は通常、画面描画処理をしたあと、自分で `exit()` を発行してスクリプトを終了します。
+	 * プラグインがスクリプトを終了せずに処理を返した場合、このメソッドはメッセージを表示した後、`exit()` を発行してスクリプトを終了します。
+	 * 
 	 * @access private
-	 * @return null
+	 * @return void
 	 */
 	private function execute(){
 		$command = $this->get_command();

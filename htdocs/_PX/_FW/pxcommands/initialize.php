@@ -1,20 +1,30 @@
 <?php
+/**
+ * class px_pxcommands_initialize
+ * 
+ * @author Tomoya Koyanagi <tomk79@gmail.com>
+ */
 $this->load_px_class('/bases/pxcommand.php');
 
 /**
  * PX Command: initializeを表示する
- **/
+ * 
+ * @author Tomoya Koyanagi <tomk79@gmail.com>
+ */
 class px_pxcommands_initialize extends px_bases_pxcommand{
 
 	/**
 	 * コンストラクタ
+	 * 
+	 * @param array $command PXコマンド名
+	 * @param object $px $pxオブジェクト
 	 */
 	public function __construct( $command , $px ){
 		parent::__construct( $command , $px );
 
 		$command = $this->get_command();
 
-		switch( $command[1] ){
+		switch( @$command[1] ){
 			case 'run':
 				$this->execute();
 				break;
