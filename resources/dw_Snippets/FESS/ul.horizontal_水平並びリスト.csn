@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" encoding="utf-8"?><snippet name="ul.horizontal 水平並びリスト" description="" preview="code" type="block"><insertText location="beforeSelection"><![CDATA[<ul class="horizontal">
+	<li class="horizontal-li"><!-- リスト内容 --></li>
+	<li class="horizontal-li"><!-- リスト内容 --></li>
+	<li class="horizontal-li"><!-- リスト内容 --></li>
+</ul>
+]]></insertText><insertText location="afterSelection"><![CDATA[]]></insertText></snippet>

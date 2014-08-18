@@ -1,0 +1,1 @@
+﻿<?xml version="1.0" encoding="utf-8"?><snippet name="a span.pdf PDFリンク" description="" preview="code" type="wrap"><insertText location="beforeSelection"><![CDATA[<span class="pdf">]]></insertText><insertText location="afterSelection"><![CDATA[</span>]]></insertText></snippet>

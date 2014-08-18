@@ -1,0 +1,1 @@
+﻿<?xml version="1.0" encoding="utf-8"?><snippet name="a.down ページ内リンク(下向き)" description="" preview="code" type="wrap"><insertText location="beforeSelection"><![CDATA[<a href="#" class="down">]]></insertText><insertText location="afterSelection"><![CDATA[</a>]]></insertText></snippet>

@@ -1,0 +1,1 @@
+﻿<?xml version="1.0" encoding="utf-8"?><snippet name=".page_top ページトップリンク" description="" preview="code" type="block"><insertText location="beforeSelection"><![CDATA[<div class="page_top">	<p><a href="#page_top">ページの先頭へ戻る</a></p></div><!-- /.page_top -->]]></insertText><insertText location="afterSelection"><![CDATA[]]></insertText></snippet>

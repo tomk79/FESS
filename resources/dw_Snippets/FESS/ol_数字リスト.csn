@@ -1,0 +1,1 @@
+﻿<?xml version="1.0" encoding="utf-8"?><snippet name="ol 数字リスト" description="" preview="code" type="block"><insertText location="beforeSelection"><![CDATA[<ol>	<li><!-- リスト内容 --></li>	<li><!-- リスト内容 --></li>	<li><!-- リスト内容 --></li></ol>]]></insertText><insertText location="afterSelection"><![CDATA[]]></insertText></snippet>

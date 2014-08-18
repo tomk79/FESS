@@ -1,0 +1,1 @@
+﻿<?xml version="1.0" encoding="utf-8"?><snippet name="hr 罫線" description="" preview="code" type="block"><insertText location="beforeSelection"><![CDATA[<hr />]]></insertText><insertText location="afterSelection"><![CDATA[]]></insertText></snippet>

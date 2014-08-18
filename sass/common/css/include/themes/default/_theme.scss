@@ -1,0 +1,143 @@
+@charset "UTF-8";
+
+@import "compass";
+@import "../../../mixin";
+
+
+/**
+ * [unit] カラムレイアウト
+ */
+.cols {
+  .cols-col {
+    &.cols-3of4 {
+      @media all and (max-width: 520px) {
+        width: auto;
+        float: none;
+      }
+    }
+    &.cols-1of2 {
+      @media all and (max-width: 520px) {
+        width: auto;
+        float: none;
+      }
+    }
+    &.cols-2of3 {
+      @media all and (max-width: 520px) {
+        width: auto;
+        float: none;
+      }
+    }
+    &.cols-1of3 {
+      @media all and (max-width: 520px) {
+        width: auto;
+        float: none;
+      }
+    }
+    &.cols-1of4 {
+      @media all and (max-width: 520px) {
+        width: auto;
+        float: none;
+      }
+    }
+  }
+}
+
+/**
+ * [unit] サムネイルリスト
+ */
+.thumb_list {
+  li {
+    @media all and (max-width: 520px) {
+      width: 33%;
+      *width: 32.9%;
+    }
+    @media all and (max-width: 420px) {
+      width: 50%;
+      *width: 49.9%;
+    }
+  }
+}
+
+/**
+ * [parts] ソースコード
+ */
+.code {
+  pre {
+    @media all and (max-width: 460px) {
+      white-space:pre-wrap;
+    }
+  }
+}
+
+/**
+ * [parts] フォーム要素
+ */
+button,
+input[type=button],
+input[type=submit]{
+  padding:0.2em 2.5em;
+  display:inline-block;
+  background-color:#f3f3f3;
+  border-radius:0.2em;
+  border:0;
+  @include box-shadow(0.1em 0.1em 0 0 #999);
+  &:hover{
+    background-color:#e9e9e9;
+  }
+  &:active{
+    background-color:#ddd;
+  }
+  @media all and (max-width: 520px){
+    padding:0.2em 1.5em;
+  }
+  @media all and (max-width: 430px){
+    padding:0.2em 0.5em;
+  }
+}
+select{
+  display:inline-block;
+  background-color:#f3f3f3;
+  border-radius:0.2em;
+  border:0;
+  @include box-shadow(0.1em 0.1em 0 0 #999);
+}
+table.form_elements {
+  @media all and (max-width: 520px) {
+    &,
+    & tbody{
+      display:block;
+      width:auto;
+    }
+    thead tr,
+    thead th,
+    thead td,
+    tbody tr,
+    tbody th,
+    tbody td{
+      display:block;
+      width:auto;
+    }
+  }
+}
+
+/**
+ * [unit] フォーム送信ボタン
+ */
+.form_buttons {
+  .form_buttons-submit{
+    button,
+    input[type=button],
+    input[type=submit]{
+      font-weight:bold;
+      font-size:130%;
+    }
+  }
+  .form_buttons-revise{
+    button,
+    input[type=button],
+    input[type=submit]{
+      font-size:80%;
+    }
+  }
+}
+

@@ -1,7 +1,7 @@
 
 # FESS (FrontEnd Standard Specification) 更新履歴
 
-## FESS 1.1.2 (2013/\*\*/\*\*)
+## FESS 1.1.2b1 (2014/\*\*/\*\*)
 
 - \*\*\*\*\*\*\*\*\*\*\*\*
 

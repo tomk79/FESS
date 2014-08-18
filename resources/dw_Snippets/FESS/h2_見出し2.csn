@@ -1,0 +1,1 @@
+﻿<?xml version="1.0" encoding="utf-8"?><snippet name="h2 見出し2" description="" preview="code" type="wrap"><insertText location="beforeSelection"><![CDATA[<h2>]]></insertText><insertText location="afterSelection"><![CDATA[</h2>]]></insertText></snippet>

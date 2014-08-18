@@ -1,0 +1,1 @@
+﻿<?xml version="1.0" encoding="utf-8"?><snippet name="strong 強調" description="" preview="code" type="wrap"><insertText location="beforeSelection"><![CDATA[<strong>]]></insertText><insertText location="afterSelection"><![CDATA[</strong>]]></insertText></snippet>

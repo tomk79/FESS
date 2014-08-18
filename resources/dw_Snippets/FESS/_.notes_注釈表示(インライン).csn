@@ -1,0 +1,1 @@
+﻿<?xml version="1.0" encoding="utf-8"?><snippet name=".notes 注釈表示(インライン)" description="" preview="code" type="wrap"><insertText location="beforeSelection"><![CDATA[<span class="notes">]]></insertText><insertText location="afterSelection"><![CDATA[</span>]]></insertText></snippet>

@@ -1,0 +1,1 @@
+﻿<?xml version="1.0" encoding="utf-8"?><snippet name="a.up ページ内リンク(上向き)" description="" preview="html" type="wrap"><insertText location="beforeSelection"><![CDATA[<a href="#" class="up">]]></insertText><insertText location="afterSelection"><![CDATA[</a>]]></insertText></snippet>

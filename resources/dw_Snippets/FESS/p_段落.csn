@@ -1,0 +1,1 @@
+﻿<?xml version="1.0" encoding="utf-8"?><snippet name="p 段落" description="" preview="code" type="wrap"><insertText location="beforeSelection"><![CDATA[<p>]]></insertText><insertText location="afterSelection"><![CDATA[</p>]]></insertText></snippet>
