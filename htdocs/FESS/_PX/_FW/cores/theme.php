@@ -287,11 +287,11 @@ class px_cores_theme{
 	public function href( $linkto ){
 		$parsed_url = parse_url($linkto);
 		$tmp_page_info_by_id = $this->px->site()->get_page_info_by_id($linkto);
-		if( !$tmp_page_info_by_id ){ $tmp_page_info_by_id = $this->px->site()->get_page_info_by_id($parsed_url['path']); }
+		if( !$tmp_page_info_by_id ){ $tmp_page_info_by_id = $this->px->site()->get_page_info_by_id(@$parsed_url['path']); }
 		$path = $linkto;
 		$path_type = $this->px->site()->get_path_type( $linkto );
-		if( $tmp_page_info_by_id['id'] == $linkto || $tmp_page_info_by_id['id'] == $parsed_url['path'] ){
-			$path = $tmp_page_info_by_id['path'];
+		if( @$tmp_page_info_by_id['id'] == $linkto || @$tmp_page_info_by_id['id'] == @$parsed_url['path'] ){
+			$path = @$tmp_page_info_by_id['path'];
 			$path_type = $this->px->site()->get_path_type( $path );
 		}
 		unset($tmp_page_info_by_id);
@@ -423,7 +423,7 @@ class px_cores_theme{
 		$parsed_url = parse_url($linkto);
 		$args = func_get_args();
 		$page_info = $this->px->site()->get_page_info($linkto);
-		if( !$page_info ){ $page_info = $this->px->site()->get_page_info($parsed_url['path']); }
+		if( !$page_info ){ $page_info = $this->px->site()->get_page_info(@$parsed_url['path']); }
 		$href = $this->href($linkto);
 		$hrefc = $this->href($this->px->req()->get_request_file_path());
 		$label = $page_info['title_label'];
@@ -441,7 +441,7 @@ class px_cores_theme{
 				}
 			}
 		}
-		if( is_string($args[1]) || (is_object($args[1]) && is_callable($args[1])) ){
+		if( @is_string($args[1]) || (@is_object($args[1]) && @is_callable($args[1])) ){
 			//  第2引数が文字列、または function なら
 			//  リンクのラベルとして採用
 			$label = $args[1];
@@ -502,7 +502,7 @@ class px_cores_theme{
 	public function mk_breadcrumb(){
 		$args = func_get_args();
 		$current_path = $this->px->req()->get_request_file_path();
-		if(strlen($args[0])){
+		if(@strlen($args[0])){
 			//オプションで指定があれば、カレントページを仮定する。
 			$current_path = $args[0];
 		}
@@ -529,7 +529,7 @@ class px_cores_theme{
 				$rtn .= '<li> &gt; <a href="'.t::h($href).'">'.t::h($linkto_page_info['title_breadcrumb']).'</a></li>';
 			}
 		}
-		$rtn .= '<li> &gt; <span class="current">'.t::h($page_info['title_breadcrumb']).'</span></li>';
+		$rtn .= '<li> &gt; <span class="current">'.t::h(@$page_info['title_breadcrumb']).'</span></li>';
 		$rtn .= '</ul>';
 		return $rtn;
 	}
@@ -788,7 +788,7 @@ class px_cores_theme{
 
 		#	インデックスの範囲
 		$index_size = 0;
-		if( !is_null( $options['index_size'] ) ){
+		if( !@is_null( $options['index_size'] ) ){
 			$index_size = intval( $options['index_size'] );
 		}
 		if( $index_size < 1 ){
