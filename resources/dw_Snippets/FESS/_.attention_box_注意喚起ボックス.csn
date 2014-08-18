@@ -1,0 +1,4 @@
+﻿<?xml version="1.0" encoding="utf-8"?><snippet name=".attention_box 注意喚起ボックス" description="" preview="code" type="wrap"><insertText location="beforeSelection"><![CDATA[<div class="attention_box">
+	<p class="attention_box-heading"><!--$string--></p>
+	<!--$parts|unit|box-->
+]]></insertText><insertText location="afterSelection"><![CDATA[</div><!-- /.attention_box -->]]></insertText></snippet>

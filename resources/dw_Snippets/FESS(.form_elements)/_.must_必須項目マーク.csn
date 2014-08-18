@@ -1,0 +1,1 @@
+﻿<?xml version="1.0" encoding="utf-8"?><snippet name=".must 必須項目マーク" description="" preview="code" type="block"><insertText location="beforeSelection"><![CDATA[<span class="must">必須</span>]]></insertText><insertText location="afterSelection"><![CDATA[]]></insertText></snippet>

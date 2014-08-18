@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?><snippet name="table.form_elements エラー行" description="" preview="code" type="block"><insertText location="beforeSelection"><![CDATA[		<tr class="form_elements-error">
+			<th>{$string}<span>必須</span></th>
+			<td>
+				<ul class="form_elements-notes">
+					<li>{$string}</li>
+					<li>{$string}</li>
+				</ul>
+				<ul class="form_elements-errors">
+					<li>{$string}</li>
+					<li>{$string}</li>
+				</ul>
+				<input type="text" name="" value="" />
+			</td>
+		</tr>
+]]></insertText><insertText location="afterSelection"><![CDATA[]]></insertText></snippet>

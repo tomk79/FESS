@@ -1,0 +1,5 @@
+﻿<?xml version="1.0" encoding="utf-8"?><snippet name=".topic_box トピックボックス" description="" preview="code" type="wrap"><insertText location="beforeSelection"><![CDATA[<div class="topic_box">
+	<p class="topic_box-heading"><!--$string--></p>
+	<!--$parts|unit|box-->
+]]></insertText><insertText location="afterSelection"><![CDATA[</div><!-- /.topic_box -->
+]]></insertText></snippet>
