@@ -706,19 +706,6 @@
 			</td>
 		</tr>
 		<tr>
-			<th>ラジオボタン入力</th>
-			<td>
-				<ul class="form_elements-notes">
-					<li>一つだけ選択してください。</li>
-				</ul>
-				<ul class="form_elements-list">
-					<li><label><input type="radio" name="radio1" value="" /> 選択肢1</label></li>
-					<li><label><input type="radio" name="radio1" value="" /> 選択肢2</label></li>
-					<li><label><input type="radio" name="radio1" value="" /> 選択肢3</label></li>
-				</ul>
-			</td>
-		</tr>
-		<tr>
 			<th>リスト</th>
 			<td>
 				<ul class="form_elements-notes">
@@ -783,19 +770,6 @@
 					&lt;li&gt;{$string}&lt;/li&gt;
 				&lt;/ul&gt;
 				&lt;input type=&quot;password&quot; name=&quot;&quot; value=&quot;&quot; /&gt;
-			&lt;/td&gt;
-		&lt;/tr&gt;
-		&lt;tr&gt;
-			&lt;th&gt;{$string}&lt;/th&gt;
-			&lt;td&gt;
-				&lt;ul class=&quot;form_elements-notes&quot;&gt;
-					&lt;li&gt;{$string}&lt;/li&gt;
-				&lt;/ul&gt;
-				&lt;ul class=&quot;form_elements-list&quot;&gt;
-					&lt;li&gt;&lt;label&gt;&lt;input type=&quot;radio&quot; name=&quot;radio1&quot; value=&quot;&quot; /&gt; {$string}&lt;/label&gt;&lt;/li&gt;
-					&lt;li&gt;&lt;label&gt;&lt;input type=&quot;radio&quot; name=&quot;radio1&quot; value=&quot;&quot; /&gt; {$string}&lt;/label&gt;&lt;/li&gt;
-					&lt;li&gt;&lt;label&gt;&lt;input type=&quot;radio&quot; name=&quot;radio1&quot; value=&quot;&quot; /&gt; {$string}&lt;/label&gt;&lt;/li&gt;
-				&lt;/ul&gt;
 			&lt;/td&gt;
 		&lt;/tr&gt;
 		&lt;tr&gt;
@@ -927,6 +901,33 @@
 &lt;/select&gt;
 </textarea></div>
 </div>
+
+<h4>ラジオボタン</h4>
+<div class="unit">
+	<ul class="nomark">
+		<li class="nomark-li"><label><input type="radio" name="radio1" value="" checked="checked" /> 選択肢1</label></li>
+		<li class="nomark-li"><label><input type="radio" name="radio1" value="" /> 選択肢2</label></li>
+		<li class="nomark-li"><label><input type="radio" name="radio1" value="" /> 選択肢3</label></li>
+	</ul>
+</div><!-- /.unit -->
+<div class="unit">
+	<div class="code"><textarea readonly="readonly">&lt;label&gt;&lt;input type=&quot;radio&quot; name=&quot;{$string}&quot; value=&quot;{$string}&quot; /&gt; {$string}&lt;/label&gt;
+</textarea></div>
+</div>
+
+<h4>チェックボックス</h4>
+<div class="unit">
+	<ul class="nomark">
+		<li class="nomark-li"><label><input type="checkbox" name="" value="" checked="checked" /> 選択肢1</label></li>
+		<li class="nomark-li"><label><input type="checkbox" name="" value="" /> 選択肢2</label></li>
+		<li class="nomark-li"><label><input type="checkbox" name="" value="" /> 選択肢3</label></li>
+	</ul>
+</div><!-- /.unit -->
+<div class="unit">
+	<div class="code"><textarea readonly="readonly">&lt;label&gt;&lt;input type=&quot;checkbox&quot; name=&quot;{$string}&quot; value=&quot;{$string}&quot; /&gt; {$string}&lt;/label&gt;
+</textarea></div>
+</div>
+
 
 
 <h4>ボタン</h4>
