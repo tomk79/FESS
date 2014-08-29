@@ -678,31 +678,13 @@
 	</thead>
 	<tbody>
 		<tr>
-			<th>テキスト入力</th>
+			<th>基本</th>
 			<td>
 				<ul class="form_elements-notes">
 					<li>全角カナで入力してください。</li>
 					<li>8文字以上入力してください。</li>
 				</ul>
 				<input type="text" name="" value="" />
-			</td>
-		</tr>
-		<tr>
-			<th>テキストエリア入力</th>
-			<td>
-				<ul class="form_elements-notes">
-					<li>複数行の入力ができます。</li>
-				</ul>
-				<textarea name=""></textarea>
-			</td>
-		</tr>
-		<tr>
-			<th>パスワード入力</th>
-			<td>
-				<ul class="form_elements-notes">
-					<li>8文字以上入力してください。</li>
-				</ul>
-				<input type="password" name="" value="" />
 			</td>
 		</tr>
 		<tr>
@@ -719,7 +701,7 @@
 			</td>
 		</tr>
 		<tr>
-			<th>リストを水平に並べるサンプル</th>
+			<th>リスト(水平)</th>
 			<td>
 				<ul class="form_elements-notes">
 					<li>この項目は、リストを水平に並べています。(.form_elements-list_horizontal を使用)</li>
@@ -752,24 +734,6 @@
 					&lt;li&gt;{$string}&lt;/li&gt;
 				&lt;/ul&gt;
 				&lt;input type=&quot;text&quot; name=&quot;&quot; value=&quot;&quot; /&gt;
-			&lt;/td&gt;
-		&lt;/tr&gt;
-		&lt;tr&gt;
-			&lt;th&gt;{$string}&lt;/th&gt;
-			&lt;td&gt;
-				&lt;ul class=&quot;form_elements-notes&quot;&gt;
-					&lt;li&gt;{$string}&lt;/li&gt;
-				&lt;/ul&gt;
-				&lt;textarea name=&quot;&quot;&gt;&lt;/textarea&gt;
-			&lt;/td&gt;
-		&lt;/tr&gt;
-		&lt;tr&gt;
-			&lt;th&gt;{$string}&lt;/th&gt;
-			&lt;td&gt;
-				&lt;ul class=&quot;form_elements-notes&quot;&gt;
-					&lt;li&gt;{$string}&lt;/li&gt;
-				&lt;/ul&gt;
-				&lt;input type=&quot;password&quot; name=&quot;&quot; value=&quot;&quot; /&gt;
 			&lt;/td&gt;
 		&lt;/tr&gt;
 		&lt;tr&gt;
@@ -865,7 +829,25 @@
 
 <h3>必須項目 .must</h3>
 <div class="unit">
-	<p>テキスト入力<span class="must">必須</span></p>
+<table class="form_elements">
+	<thead>
+		<tr>
+			<th>入力項目名</th>
+			<th>入力フィールド</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<th>テキスト入力<span class="must">必須</span></th>
+			<td>
+				<ul class="form_elements-notes">
+					<li>必ず入力してください。</li>
+				</ul>
+				<input type="text" name="" value="" />
+			</td>
+		</tr>
+	</tbody>
+</table>
 </div><!-- /.unit -->
 <div class="unit">
 	<div class="code"><textarea readonly="readonly">{$string}&lt;span class=&quot;must&quot;&gt;必須&lt;/span&gt;
@@ -882,8 +864,34 @@
 
 <h3>フォーム要素</h3>
 
-<h4>プルダウン</h4>
+<h4>テキスト入力</h4>
+<div class="unit">
+	<input type="text" name="" value="" />
+</div><!-- /.unit -->
+<div class="unit">
+	<div class="code"><textarea readonly="readonly">&lt;input type=&quot;text&quot; name=&quot;{$string}&quot; value=&quot;{$string}&quot; /&gt;
+</textarea></div>
+</div>
 
+<h4>テキスト入力(複数行)</h4>
+<div class="unit">
+	<textarea name=""></textarea>
+</div><!-- /.unit -->
+<div class="unit">
+	<div class="code"><textarea readonly="readonly">&lt;textarea name=&quot;{$string}&quot;&gt;{$string}&lt;/textarea&gt;
+</textarea></div>
+</div>
+
+<h4>パスワード入力</h4>
+<div class="unit">
+	<input type="password" name="" value="" />
+</div><!-- /.unit -->
+<div class="unit">
+	<div class="code"><textarea readonly="readonly">&lt;input type=&quot;password&quot; name=&quot;{$string}&quot; value=&quot;{$string}&quot; /&gt;
+</textarea></div>
+</div>
+
+<h4>プルダウン</h4>
 <div class="unit">
 	<select name="">
 		<option value="">選択してください</option>
@@ -928,6 +936,105 @@
 </textarea></div>
 </div>
 
+
+<h4>数値入力</h4>
+<div class="unit">
+	<input type="number" name="" value="" />
+</div><!-- /.unit -->
+<div class="unit">
+	<div class="code"><textarea readonly="readonly">&lt;input type=&quot;number&quot; name=&quot;{$string}&quot; value=&quot;{$string}&quot; /&gt;
+</textarea></div>
+</div>
+
+
+<h4>日付入力</h4>
+<div class="unit">
+	<input type="date" name="" value="" />
+</div><!-- /.unit -->
+<div class="unit">
+	<div class="code"><textarea readonly="readonly">&lt;input type=&quot;date&quot; name=&quot;{$string}&quot; value=&quot;{$string}&quot; /&gt;
+</textarea></div>
+</div>
+
+
+<h4>日時(ローカルタイム)入力</h4>
+<div class="unit">
+	<input type="datetime-local" name="" value="" />
+</div><!-- /.unit -->
+<div class="unit">
+	<div class="code"><textarea readonly="readonly">&lt;input type=&quot;datetime-local&quot; name=&quot;{$string}&quot; value=&quot;{$string}&quot; /&gt;
+</textarea></div>
+</div>
+
+
+<h4>時刻入力</h4>
+<div class="unit">
+	<input type="time" name="" value="13:00" />
+</div><!-- /.unit -->
+<div class="unit">
+	<div class="code"><textarea readonly="readonly">&lt;input type=&quot;time&quot; name=&quot;{$string}&quot; value=&quot;{$string}&quot; /&gt;
+</textarea></div>
+</div>
+
+
+<h4>検索キーワード入力</h4>
+<div class="unit">
+	<input type="search" name="" value="" />
+</div><!-- /.unit -->
+<div class="unit">
+	<div class="code"><textarea readonly="readonly">&lt;input type=&quot;search&quot; name=&quot;{$string}&quot; value=&quot;{$string}&quot; /&gt;
+</textarea></div>
+</div>
+
+
+<h4>電話番号入力</h4>
+<div class="unit">
+	<input type="tel" name="" value="" />
+</div><!-- /.unit -->
+<div class="unit">
+	<div class="code"><textarea readonly="readonly">&lt;input type=&quot;tel&quot; name=&quot;{$string}&quot; value=&quot;{$string}&quot; /&gt;
+</textarea></div>
+</div>
+
+
+<h4>URL入力</h4>
+<div class="unit">
+	<input type="url" name="" value="" />
+</div><!-- /.unit -->
+<div class="unit">
+	<div class="code"><textarea readonly="readonly">&lt;input type=&quot;url&quot; name=&quot;{$string}&quot; value=&quot;{$string}&quot; /&gt;
+</textarea></div>
+</div>
+
+
+<h4>メールアドレス入力</h4>
+<div class="unit">
+	<input type="email" name="" value="" />
+</div><!-- /.unit -->
+<div class="unit">
+	<div class="code"><textarea readonly="readonly">&lt;input type=&quot;email&quot; name=&quot;{$string}&quot; value=&quot;{$string}&quot; /&gt;
+</textarea></div>
+</div>
+
+
+<h4>レンジ入力</h4>
+<div class="unit">
+	<input type="range" name="" value="" />
+</div><!-- /.unit -->
+<div class="unit">
+	<div class="code"><textarea readonly="readonly">&lt;input type=&quot;range&quot; name=&quot;{$string}&quot; value=&quot;{$string}&quot; /&gt;
+</textarea></div>
+</div>
+
+
+<h4>色入力</h4>
+<div class="unit">
+	<input type="color" name="" value="" />
+</div><!-- /.unit -->
+<div class="unit">
+	<div class="code"><textarea readonly="readonly">&lt;input type=&quot;color&quot; name=&quot;{$string}&quot; value=&quot;{$string}&quot; /&gt;
+</textarea></div>
+</div>
 
 
 <h4>ボタン</h4>
