@@ -1029,6 +1029,8 @@ table.form_elements ul.form_elements-errors li {
   font-weight: bold;
   display: inline;
   white-space: nowrap;
+  margin-left: 0.5em;
+  margin-right: 0.5em;
 }
 
 /**
@@ -1417,7 +1419,7 @@ code {
 button,
 input[type=button],
 input[type=submit] {
-  padding: 0.2em 2.5em;
+  padding: 0.5em 2.5em 0.5em 2.5em;
   display: inline-block;
   background-color: #f3f3f3;
   border-radius: 0.2em;
@@ -1481,6 +1483,17 @@ select {
     width: auto;
     border-bottom: 0;
   }
+}
+
+/**
+ * [parts] 必須項目
+ */
+.must {
+  border: 1px solid #f63;
+  background-color: #fdd;
+  padding: 0.2em 0.8em;
+  font-size: 90%;
+  border-radius: 1.2em;
 }
 
 /**

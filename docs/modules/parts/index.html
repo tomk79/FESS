@@ -64,10 +64,28 @@
 <li><a href="#hash_メディア別パーツ出し分け">メディア別パーツ出し分け</a></li>
 <li><a href="#hash_カレント制御_.current">カレント制御 .current</a></li>
 <li><a href="#hash_ソースコード_.code">ソースコード .code</a><ul><li><a href="#hash_コピペ用ソースコード">コピペ用ソースコード</a></li>
-<li><a href="#hash_見てるだけ用ソースコード">見てるだけ用ソースコード</a></li></ul></li><li><a href="#hash_フォーム_.form_elements">フォーム .form_elements</a><ul><li><a href="#hash_フォーム要素">フォーム要素</a></li>
+<li><a href="#hash_見てるだけ用ソースコード">見てるだけ用ソースコード</a></li></ul></li><li><a href="#hash_フォーム">フォーム</a><ul><li><a href="#hash_フォームテーブル_.form_elements">フォームテーブル .form_elements</a></li>
 <li><a href="#hash_エラー表示">エラー表示</a></li>
 <li><a href="#hash_必須項目_.must">必須項目 .must</a></li>
-<li><a href="#hash_送信系ボタン">送信系ボタン</a></li></ul>
+<li><a href="#hash_送信系ボタン">送信系ボタン</a></li>
+<li><a href="#hash_フォーム要素">フォーム要素</a><ul><li><a href="#hash_テキスト入力">テキスト入力</a></li>
+<li><a href="#hash_テキスト入力(複数行)">テキスト入力(複数行)</a></li>
+<li><a href="#hash_パスワード入力">パスワード入力</a></li>
+<li><a href="#hash_プルダウン">プルダウン</a></li>
+<li><a href="#hash_ラジオボタン">ラジオボタン</a></li>
+<li><a href="#hash_チェックボックス">チェックボックス</a></li>
+<li><a href="#hash_数値入力">数値入力</a></li>
+<li><a href="#hash_日付入力">日付入力</a></li>
+<li><a href="#hash_日時(ローカルタイム)入力">日時(ローカルタイム)入力</a></li>
+<li><a href="#hash_時刻入力">時刻入力</a></li>
+<li><a href="#hash_検索キーワード入力">検索キーワード入力</a></li>
+<li><a href="#hash_電話番号入力">電話番号入力</a></li>
+<li><a href="#hash_URL入力">URL入力</a></li>
+<li><a href="#hash_メールアドレス入力">メールアドレス入力</a></li>
+<li><a href="#hash_レンジ入力">レンジ入力</a></li>
+<li><a href="#hash_色入力">色入力</a></li>
+<li><a href="#hash_ボタン">ボタン</a></li></ul>
+</li></ul>
 </li></ul>
 </div><!-- /.anchor_links -->
 <!-- / autoindex -->
@@ -132,7 +150,7 @@
 
 <span id="hash_通常のインラインリンク"></span><h3>通常のインラインリンク</h3>
 
-<p><a href="./">通常のインラインリンク</a></p>
+<p><a href="javascript:alert('リンクがクリックされました。');">通常のインラインリンク</a></p>
 <div class="unit">
 	<div class="code"><textarea readonly="readonly">&lt;a href=&quot;{$string}&quot;&gt;{$string}&lt;/a&gt;</textarea></div>
 </div><!-- /.unit -->
@@ -140,7 +158,7 @@
 
 <span id="hash_アイコン付きリンク_.icon"></span><h3>アイコン付きリンク .icon</h3>
 
-<p><a href="./" class="icon">アイコン付きリンク</a></p>
+<p><a href="javascript:alert('リンクがクリックされました。');" class="icon">アイコン付きリンク</a></p>
 <div class="unit">
 	<div class="code"><textarea readonly="readonly">&lt;a href=&quot;{$string}&quot; class=&quot;icon&quot;&gt;{$string}&lt;/a&gt;
 </textarea></div>
@@ -148,7 +166,7 @@
 
 <span id="hash_ページ内リンク(下向き)_.down"></span><h3>ページ内リンク(下向き) .down</h3>
 
-<p><a href="./" class="down">ページ内リンク(下向き)</a></p>
+<p><a href="javascript:alert('リンクがクリックされました。');" class="down">ページ内リンク(下向き)</a></p>
 <div class="unit">
 	<div class="code"><textarea readonly="readonly">&lt;a href=&quot;{$string}&quot; class=&quot;down&quot;&gt;{$string}&lt;/a&gt;
 </textarea></div>
@@ -156,7 +174,7 @@
 
 <span id="hash_ページ内リンク(上向き)_.up"></span><h3>ページ内リンク(上向き) .up</h3>
 
-<p><a href="./" class="up">ページ内リンク(上向き)</a></p>
+<p><a href="javascript:alert('リンクがクリックされました。');" class="up">ページ内リンク(上向き)</a></p>
 <div class="unit">
 	<div class="code"><textarea readonly="readonly">&lt;a href=&quot;{$string}&quot; class=&quot;up&quot;&gt;{$string}&lt;/a&gt;
 </textarea></div>
@@ -179,7 +197,7 @@
 
 <span id="hash_別ウィンドウリンク_.blank"></span><h4>別ウィンドウリンク .blank</h4>
 
-<p><a href="./" target="_blank"><span class="blank">別ウィンドウリンク</span></a></p>
+<p><a href="javascript:alert('リンクがクリックされました。');" target="_blank"><span class="blank">別ウィンドウリンク</span></a></p>
 <div class="unit">
 	<div class="code"><textarea readonly="readonly">&lt;p&gt;&lt;a href=&quot;{$string}&quot; target=&quot;_blank&quot;&gt;&lt;span class=&quot;blank&quot;&gt;{$string}&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;
 </textarea></div>
@@ -188,7 +206,7 @@
 
 <span id="hash_ダウンロードリンク_.download"></span><h4>ダウンロードリンク .download</h4>
 
-<p><a href="./"><span class="download">ダウンロードリンク</span></a></p>
+<p><a href="javascript:alert('リンクがクリックされました。');"><span class="download">ダウンロードリンク</span></a></p>
 <div class="unit">
 	<div class="code"><textarea readonly="readonly">&lt;p&gt;&lt;a href=&quot;{$string}&quot;&gt;&lt;span class=&quot;download&quot;&gt;{$string}&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;
 </textarea></div>
@@ -196,7 +214,7 @@
 
 <span id="hash_PDF_.pdf"></span><h4>PDF .pdf</h4>
 
-<p><a href="./"><span class="pdf">PDFファイル名</span></a></p>
+<p><a href="javascript:alert('リンクがクリックされました。');"><span class="pdf">PDFファイル名</span></a></p>
 <div class="unit">
 	<div class="code"><textarea readonly="readonly">&lt;p&gt;&lt;a href=&quot;{$string}&quot;&gt;&lt;span class=&quot;pdf&quot;&gt;{$string}&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;
 </textarea></div>
@@ -210,14 +228,14 @@
 <div class="anchor_links">
 	<p class="anchor_links-heading">目次</p>
 	<ul>
-		<li><a href="#">ページ内リンク</a></li>
-		<li><a href="#">ページ内リンク</a>
+		<li><a href="javascript:alert('リンクがクリックされました。');">ページ内リンク</a></li>
+		<li><a href="javascript:alert('リンクがクリックされました。');">ページ内リンク</a>
 		<ul>
-			<li><a href="#">ページ内リンク</a></li>
-			<li><a href="#">ページ内リンク</a></li>
+			<li><a href="javascript:alert('リンクがクリックされました。');">ページ内リンク</a></li>
+			<li><a href="javascript:alert('リンクがクリックされました。');">ページ内リンク</a></li>
 		</ul>
 		</li>
-		<li><a href="#">ページ内リンク</a></li>
+		<li><a href="javascript:alert('リンクがクリックされました。');">ページ内リンク</a></li>
 	</ul>
 </div><!-- /.anchor_links -->
 
@@ -244,9 +262,9 @@
 </p>
 <div class="more_links">
 	<ul>
-		<li><a href="./">詳しくはこちら</a></li>
-		<li><a href="./">詳しくはこちら</a></li>
-		<li><a href="./">詳しくはこちら</a></li>
+		<li><a href="javascript:alert('リンクがクリックされました。');">詳しくはこちら</a></li>
+		<li><a href="javascript:alert('リンクがクリックされました。');">詳しくはこちら</a></li>
+		<li><a href="javascript:alert('リンクがクリックされました。');">詳しくはこちら</a></li>
 	</ul>
 </div><!-- /.more_links -->
 <div class="unit">
@@ -502,17 +520,17 @@
 				<tr>
 					<th>2012年9月24日</th>
 					<td class="date_list-flag">[NEW!][CATEGORY]</td>
-					<td><a href="#">新着ニュースへのリンク</a></td>
+					<td><a href="javascript:alert('リンクがクリックされました。');">新着ニュースへのリンク</a></td>
 				</tr>
 				<tr>
 					<th>2012年9月24日</th>
 					<td class="date_list-flag">[NEW!][CATEGORY]</td>
-					<td><a href="#">新着ニュースへのリンク新着ニュースへのリンク新着ニュースへのリンク新着ニュースへのリンク</a></td>
+					<td><a href="javascript:alert('リンクがクリックされました。');">新着ニュースへのリンク新着ニュースへのリンク新着ニュースへのリンク新着ニュースへのリンク</a></td>
 				</tr>
 				<tr>
 					<th>2012年9月24日</th>
 					<td class="date_list-flag">[NEW!][CATEGORY]</td>
-					<td><a href="#">新着ニュースへのリンク</a></td>
+					<td><a href="javascript:alert('リンクがクリックされました。');">新着ニュースへのリンク</a></td>
 				</tr>
 			</tbody>
 		</table>
@@ -684,7 +702,7 @@
 	カレントページを示す要素に適用します。通常は <code>a</code>要素 に対して適用しますが、場合によっては <code>li</code>要素などにも使用する場合にも、同じクラス名を使用します。<br />
 </p>
 
-<p><a href="***" class="current">カレントページ</a></p>
+<p><a href="javascript:alert('リンクがクリックされました。');" class="current">カレントページ</a></p>
 
 <div class="unit">
 	<div class="code"><textarea readonly="readonly">&lt;a href=&quot;{$string}&quot; class=&quot;current&quot;&gt;{$string}&lt;/a&gt;
@@ -727,10 +745,10 @@
 </div><!-- /.unit -->
 
 
-<span id="hash_フォーム_.form_elements"></span><h2><span>フォーム .form_elements</span></h2>
+<span id="hash_フォーム"></span><h2><span>フォーム</span></h2>
 
-<form action="#" method="post" class="inline">
-<span id="hash_フォーム要素"></span><h3>フォーム要素</h3>
+<form action="javascript:alert('フォームが送信されました。');" method="post" class="inline">
+<span id="hash_フォームテーブル_.form_elements"></span><h3>フォームテーブル .form_elements</h3>
 <div class="unit">
 <table class="form_elements">
 	<thead>
@@ -741,7 +759,7 @@
 	</thead>
 	<tbody>
 		<tr>
-			<th>テキスト入力</th>
+			<th>基本</th>
 			<td>
 				<ul class="form_elements-notes">
 					<li>全角カナで入力してください。</li>
@@ -751,38 +769,7 @@
 			</td>
 		</tr>
 		<tr>
-			<th>テキストエリア入力</th>
-			<td>
-				<ul class="form_elements-notes">
-					<li>複数行の入力ができます。</li>
-				</ul>
-				<textarea name=""></textarea>
-			</td>
-		</tr>
-		<tr>
-			<th>パスワード入力</th>
-			<td>
-				<ul class="form_elements-notes">
-					<li>8文字以上入力してください。</li>
-				</ul>
-				<input type="password" name="" value="" />
-			</td>
-		</tr>
-		<tr>
-			<th>ラジオボタン入力</th>
-			<td>
-				<ul class="form_elements-notes">
-					<li>一つだけ選択してください。</li>
-				</ul>
-				<ul class="form_elements-list">
-					<li><label><input type="radio" name="radio1" value="" /> 選択肢1</label></li>
-					<li><label><input type="radio" name="radio1" value="" /> 選択肢2</label></li>
-					<li><label><input type="radio" name="radio1" value="" /> 選択肢3</label></li>
-				</ul>
-			</td>
-		</tr>
-		<tr>
-			<th>チェックボックス入力</th>
+			<th>リスト</th>
 			<td>
 				<ul class="form_elements-notes">
 					<li>複数選択が可能です。</li>
@@ -795,7 +782,7 @@
 			</td>
 		</tr>
 		<tr>
-			<th>リストを水平に並べるサンプル</th>
+			<th>リスト(水平)</th>
 			<td>
 				<ul class="form_elements-notes">
 					<li>この項目は、リストを水平に並べています。(.form_elements-list_horizontal を使用)</li>
@@ -805,28 +792,6 @@
 					<li><label><input type="checkbox" name="" value="" /> 選択肢2</label></li>
 					<li><label><input type="checkbox" name="" value="" /> 選択肢3</label></li>
 				</ul>
-			</td>
-		</tr>
-		<tr>
-			<th>プルダウン選択入力</th>
-			<td>
-				<ul class="form_elements-notes">
-					<li>１つだけ選択してください。</li>
-				</ul>
-				<select name="">
-					<option value="">選択してください</option>
-					<option value="">選択肢1</option>
-					<option value="">選択肢2</option>
-					<option value="">選択肢3</option>
-				</select>
-			</td>
-		</tr>
-		<tr>
-			<th>ボタン</th>
-			<td>
-				<button onclick="alert('ボタンをクリックしました。');return false;">ボタン</button>
-				<input type="button" value="ボタン" onclick="alert('ボタンをクリックしました。');return false;" />
-				<input type="submit" value="ボタン" onclick="alert('ボタンをクリックしました。');return false;" />
 			</td>
 		</tr>
 	</tbody>
@@ -858,37 +823,6 @@
 				&lt;ul class=&quot;form_elements-notes&quot;&gt;
 					&lt;li&gt;{$string}&lt;/li&gt;
 				&lt;/ul&gt;
-				&lt;textarea name=&quot;&quot;&gt;&lt;/textarea&gt;
-			&lt;/td&gt;
-		&lt;/tr&gt;
-		&lt;tr&gt;
-			&lt;th&gt;{$string}&lt;/th&gt;
-			&lt;td&gt;
-				&lt;ul class=&quot;form_elements-notes&quot;&gt;
-					&lt;li&gt;{$string}&lt;/li&gt;
-				&lt;/ul&gt;
-				&lt;input type=&quot;password&quot; name=&quot;&quot; value=&quot;&quot; /&gt;
-			&lt;/td&gt;
-		&lt;/tr&gt;
-		&lt;tr&gt;
-			&lt;th&gt;{$string}&lt;/th&gt;
-			&lt;td&gt;
-				&lt;ul class=&quot;form_elements-notes&quot;&gt;
-					&lt;li&gt;{$string}&lt;/li&gt;
-				&lt;/ul&gt;
-				&lt;ul class=&quot;form_elements-list&quot;&gt;
-					&lt;li&gt;&lt;label&gt;&lt;input type=&quot;radio&quot; name=&quot;radio1&quot; value=&quot;&quot; /&gt; {$string}&lt;/label&gt;&lt;/li&gt;
-					&lt;li&gt;&lt;label&gt;&lt;input type=&quot;radio&quot; name=&quot;radio1&quot; value=&quot;&quot; /&gt; {$string}&lt;/label&gt;&lt;/li&gt;
-					&lt;li&gt;&lt;label&gt;&lt;input type=&quot;radio&quot; name=&quot;radio1&quot; value=&quot;&quot; /&gt; {$string}&lt;/label&gt;&lt;/li&gt;
-				&lt;/ul&gt;
-			&lt;/td&gt;
-		&lt;/tr&gt;
-		&lt;tr&gt;
-			&lt;th&gt;{$string}&lt;/th&gt;
-			&lt;td&gt;
-				&lt;ul class=&quot;form_elements-notes&quot;&gt;
-					&lt;li&gt;{$string}&lt;/li&gt;
-				&lt;/ul&gt;
 				&lt;ul class=&quot;form_elements-list&quot;&gt;
 					&lt;li&gt;&lt;label&gt;&lt;input type=&quot;checkbox&quot; name=&quot;&quot; value=&quot;&quot; /&gt; {$string}&lt;/label&gt;&lt;/li&gt;
 					&lt;li&gt;&lt;label&gt;&lt;input type=&quot;checkbox&quot; name=&quot;&quot; value=&quot;&quot; /&gt; {$string}&lt;/label&gt;&lt;/li&gt;
@@ -909,31 +843,11 @@
 				&lt;/ul&gt;
 			&lt;/td&gt;
 		&lt;/tr&gt;
-		&lt;tr&gt;
-			&lt;th&gt;{$string}&lt;/th&gt;
-			&lt;td&gt;
-				&lt;ul class=&quot;form_elements-notes&quot;&gt;
-					&lt;li&gt;{$string}&lt;/li&gt;
-				&lt;/ul&gt;
-				&lt;select name=&quot;&quot;&gt;
-					&lt;option value=&quot;&quot;&gt;選択してください&lt;/option&gt;
-					&lt;option value=&quot;&quot;&gt;{$string}&lt;/option&gt;
-					&lt;option value=&quot;&quot;&gt;{$string}&lt;/option&gt;
-					&lt;option value=&quot;&quot;&gt;{$string}&lt;/option&gt;
-				&lt;/select&gt;
-			&lt;/td&gt;
-		&lt;/tr&gt;
-		&lt;tr&gt;
-			&lt;th&gt;{$string}&lt;/th&gt;
-			&lt;td&gt;
-				&lt;button onclick=&quot;{$string}&quot;&gt;{$string}&lt;/button&gt;
-				&lt;input type=&quot;button&quot; value=&quot;{$string}&quot; onclick=&quot;{$string}&quot; /&gt;
-				&lt;input type=&quot;submit&quot; value=&quot;{$string}&quot; onclick=&quot;{$string}&quot; /&gt;
-			&lt;/td&gt;
-		&lt;/tr&gt;
 	&lt;/tbody&gt;
 &lt;/table&gt;</textarea></div>
 </div><!-- /.unit -->
+
+
 
 
 
@@ -949,7 +863,7 @@
 	</thead>
 	<tbody>
 		<tr class="form_elements-error">
-			<th>テキスト入力<span>必須</span></th>
+			<th>テキスト入力<span class="must">必須</span></th>
 			<td>
 				<ul class="form_elements-notes">
 					<li>全角カナで入力してください。</li>
@@ -975,7 +889,7 @@
 	&lt;/thead&gt;
 	&lt;tbody&gt;
 		&lt;tr class=&quot;form_elements-error&quot;&gt;
-			&lt;th&gt;{$string}&lt;span&gt;必須&lt;/span&gt;&lt;/th&gt;
+			&lt;th&gt;{$string}&lt;span class=&quot;must&quot;&gt;必須&lt;/span&gt;&lt;/th&gt;
 			&lt;td&gt;
 				&lt;ul class=&quot;form_elements-notes&quot;&gt;
 					&lt;li&gt;{$string}&lt;/li&gt;
@@ -1008,8 +922,7 @@
 			<th>テキスト入力<span class="must">必須</span></th>
 			<td>
 				<ul class="form_elements-notes">
-					<li>全角カナで入力してください。</li>
-					<li>8文字以上入力してください。</li>
+					<li>必ず入力してください。</li>
 				</ul>
 				<input type="text" name="" value="" />
 			</td>
@@ -1018,7 +931,7 @@
 </table>
 </div><!-- /.unit -->
 <div class="unit">
-	<div class="code"><textarea readonly="readonly">&lt;span class=&quot;must&quot;&gt;必須&lt;/span&gt;
+	<div class="code"><textarea readonly="readonly">{$string}&lt;span class=&quot;must&quot;&gt;必須&lt;/span&gt;
 </textarea></div>
 </div>
 
@@ -1028,6 +941,197 @@
 	送信系ボタンは、ユニットモジュールとして設計されています。<br />
 	<a href="../units/">ユニットモジュールのページ</a>を参照してください。<br />
 </p>
+
+
+<span id="hash_フォーム要素"></span><h3>フォーム要素</h3>
+
+<span id="hash_テキスト入力"></span><h4>テキスト入力</h4>
+<div class="unit">
+	<input type="text" name="" value="" />
+</div><!-- /.unit -->
+<div class="unit">
+	<div class="code"><textarea readonly="readonly">&lt;input type=&quot;text&quot; name=&quot;{$string}&quot; value=&quot;{$string}&quot; /&gt;
+</textarea></div>
+</div>
+
+<span id="hash_テキスト入力(複数行)"></span><h4>テキスト入力(複数行)</h4>
+<div class="unit">
+	<textarea name=""></textarea>
+</div><!-- /.unit -->
+<div class="unit">
+	<div class="code"><textarea readonly="readonly">&lt;textarea name=&quot;{$string}&quot;&gt;{$string}&lt;/textarea&gt;
+</textarea></div>
+</div>
+
+<span id="hash_パスワード入力"></span><h4>パスワード入力</h4>
+<div class="unit">
+	<input type="password" name="" value="" />
+</div><!-- /.unit -->
+<div class="unit">
+	<div class="code"><textarea readonly="readonly">&lt;input type=&quot;password&quot; name=&quot;{$string}&quot; value=&quot;{$string}&quot; /&gt;
+</textarea></div>
+</div>
+
+<span id="hash_プルダウン"></span><h4>プルダウン</h4>
+<div class="unit">
+	<select name="">
+		<option value="">選択してください</option>
+		<option value="">選択肢1</option>
+		<option value="">選択肢2</option>
+		<option value="">選択肢3</option>
+	</select>
+</div><!-- /.unit -->
+<div class="unit">
+	<div class="code"><textarea readonly="readonly">&lt;select name=&quot;{$string}&quot;&gt;
+	&lt;option value=&quot;&quot;&gt;選択してください&lt;/option&gt;
+	&lt;option value=&quot;{$string}&quot;&gt;{$string}&lt;/option&gt;
+	&lt;option value=&quot;{$string}&quot;&gt;{$string}&lt;/option&gt;
+	&lt;option value=&quot;{$string}&quot;&gt;{$string}&lt;/option&gt;
+&lt;/select&gt;
+</textarea></div>
+</div>
+
+<span id="hash_ラジオボタン"></span><h4>ラジオボタン</h4>
+<div class="unit">
+	<ul class="nomark">
+		<li class="nomark-li"><label><input type="radio" name="radio1" value="" checked="checked" /> 選択肢1</label></li>
+		<li class="nomark-li"><label><input type="radio" name="radio1" value="" /> 選択肢2</label></li>
+		<li class="nomark-li"><label><input type="radio" name="radio1" value="" /> 選択肢3</label></li>
+	</ul>
+</div><!-- /.unit -->
+<div class="unit">
+	<div class="code"><textarea readonly="readonly">&lt;label&gt;&lt;input type=&quot;radio&quot; name=&quot;{$string}&quot; value=&quot;{$string}&quot; /&gt; {$string}&lt;/label&gt;
+</textarea></div>
+</div>
+
+<span id="hash_チェックボックス"></span><h4>チェックボックス</h4>
+<div class="unit">
+	<ul class="nomark">
+		<li class="nomark-li"><label><input type="checkbox" name="" value="" checked="checked" /> 選択肢1</label></li>
+		<li class="nomark-li"><label><input type="checkbox" name="" value="" /> 選択肢2</label></li>
+		<li class="nomark-li"><label><input type="checkbox" name="" value="" /> 選択肢3</label></li>
+	</ul>
+</div><!-- /.unit -->
+<div class="unit">
+	<div class="code"><textarea readonly="readonly">&lt;label&gt;&lt;input type=&quot;checkbox&quot; name=&quot;{$string}&quot; value=&quot;{$string}&quot; /&gt; {$string}&lt;/label&gt;
+</textarea></div>
+</div>
+
+
+<span id="hash_数値入力"></span><h4>数値入力</h4>
+<div class="unit">
+	<input type="number" name="" value="" />
+</div><!-- /.unit -->
+<div class="unit">
+	<div class="code"><textarea readonly="readonly">&lt;input type=&quot;number&quot; name=&quot;{$string}&quot; value=&quot;{$string}&quot; /&gt;
+</textarea></div>
+</div>
+
+
+<span id="hash_日付入力"></span><h4>日付入力</h4>
+<div class="unit">
+	<input type="date" name="" value="" />
+</div><!-- /.unit -->
+<div class="unit">
+	<div class="code"><textarea readonly="readonly">&lt;input type=&quot;date&quot; name=&quot;{$string}&quot; value=&quot;{$string}&quot; /&gt;
+</textarea></div>
+</div>
+
+
+<span id="hash_日時(ローカルタイム)入力"></span><h4>日時(ローカルタイム)入力</h4>
+<div class="unit">
+	<input type="datetime-local" name="" value="" />
+</div><!-- /.unit -->
+<div class="unit">
+	<div class="code"><textarea readonly="readonly">&lt;input type=&quot;datetime-local&quot; name=&quot;{$string}&quot; value=&quot;{$string}&quot; /&gt;
+</textarea></div>
+</div>
+
+
+<span id="hash_時刻入力"></span><h4>時刻入力</h4>
+<div class="unit">
+	<input type="time" name="" value="13:00" />
+</div><!-- /.unit -->
+<div class="unit">
+	<div class="code"><textarea readonly="readonly">&lt;input type=&quot;time&quot; name=&quot;{$string}&quot; value=&quot;{$string}&quot; /&gt;
+</textarea></div>
+</div>
+
+
+<span id="hash_検索キーワード入力"></span><h4>検索キーワード入力</h4>
+<div class="unit">
+	<input type="search" name="" value="" />
+</div><!-- /.unit -->
+<div class="unit">
+	<div class="code"><textarea readonly="readonly">&lt;input type=&quot;search&quot; name=&quot;{$string}&quot; value=&quot;{$string}&quot; /&gt;
+</textarea></div>
+</div>
+
+
+<span id="hash_電話番号入力"></span><h4>電話番号入力</h4>
+<div class="unit">
+	<input type="tel" name="" value="" />
+</div><!-- /.unit -->
+<div class="unit">
+	<div class="code"><textarea readonly="readonly">&lt;input type=&quot;tel&quot; name=&quot;{$string}&quot; value=&quot;{$string}&quot; /&gt;
+</textarea></div>
+</div>
+
+
+<span id="hash_URL入力"></span><h4>URL入力</h4>
+<div class="unit">
+	<input type="url" name="" value="" />
+</div><!-- /.unit -->
+<div class="unit">
+	<div class="code"><textarea readonly="readonly">&lt;input type=&quot;url&quot; name=&quot;{$string}&quot; value=&quot;{$string}&quot; /&gt;
+</textarea></div>
+</div>
+
+
+<span id="hash_メールアドレス入力"></span><h4>メールアドレス入力</h4>
+<div class="unit">
+	<input type="email" name="" value="" />
+</div><!-- /.unit -->
+<div class="unit">
+	<div class="code"><textarea readonly="readonly">&lt;input type=&quot;email&quot; name=&quot;{$string}&quot; value=&quot;{$string}&quot; /&gt;
+</textarea></div>
+</div>
+
+
+<span id="hash_レンジ入力"></span><h4>レンジ入力</h4>
+<div class="unit">
+	<input type="range" name="" value="" />
+</div><!-- /.unit -->
+<div class="unit">
+	<div class="code"><textarea readonly="readonly">&lt;input type=&quot;range&quot; name=&quot;{$string}&quot; value=&quot;{$string}&quot; /&gt;
+</textarea></div>
+</div>
+
+
+<span id="hash_色入力"></span><h4>色入力</h4>
+<div class="unit">
+	<input type="color" name="" value="" />
+</div><!-- /.unit -->
+<div class="unit">
+	<div class="code"><textarea readonly="readonly">&lt;input type=&quot;color&quot; name=&quot;{$string}&quot; value=&quot;{$string}&quot; /&gt;
+</textarea></div>
+</div>
+
+
+<span id="hash_ボタン"></span><h4>ボタン</h4>
+<div class="unit">
+	<button onclick="alert('ボタンをクリックしました。');return false;">ボタン (button要素)</button>
+	<input type="button" value="ボタン (input要素)" onclick="alert('ボタンをクリックしました。');return false;" />
+	<input type="submit" value="ボタン (submit)" onclick="alert('ボタンをクリックしました。');return false;" />
+</div><!-- /.unit -->
+
+<div class="unit">
+	<div class="code"><textarea readonly="readonly">&lt;button&gt;{$string}&lt;/button&gt;
+&lt;input type=&quot;button&quot; value=&quot;{$string}&quot; /&gt;
+&lt;input type=&quot;submit&quot; value=&quot;{$string}&quot; /&gt;
+</textarea></div>
+</div>
+
 
 </form>
 
