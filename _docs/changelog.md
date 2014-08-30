@@ -1,7 +1,7 @@
 
 # FESS (FrontEnd Standard Specification) 更新履歴
 
-## FESS 1.1.1-nb (2014/\*\*/\*\*)
+## FESS 1.1.2 (2014/8/30)
 
 - テーマファイルのインクルードを追加した。
 - RWD対応(テーマに実装)

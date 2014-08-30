@@ -18,27 +18,26 @@ FESS は、FrontEnd Standard Specification (フロントエンド標準仕様)�
 
 Pickles Framework については、次のページを参照してください。
 
-- Pickles Framework official website (http://pickles.pxt.jp/)
-- Github リポジトリ (https://github.com/tomk79/PxFW-1.x)
+- [Pickles Framework official website](http://pickles.pxt.jp/)
+- [Github リポジトリ](https://github.com/tomk79/PxFW-1.x)
 
 
-■更新履歴
+## 更新履歴
 
 更新履歴は、下記のファイルに記述があります。
 
-　・_docs/changelog.txt
+- _docs/changelog.txt
 
 
-■ライセンス
+## ライセンス
 
-MIT License を適用します。
-( http://ja.wikipedia.org/wiki/MIT_License )
+[MIT License](http://ja.wikipedia.org/wiki/MIT_License) を適用します。
 
 
-■作者
+## 作者
 
-(C)Tomoya Koyanagi <tomk79@gmail.com>
-http://www.pxt.jp/
-Twitter: @tomk79 http://twitter.com/tomk79/
+(C)Tomoya Koyanagi <tomk79@gmail.com><br />
+[http://www.pxt.jp/](http://www.pxt.jp/)<br />
+Twitter: @tomk79 [http://twitter.com/tomk79/](http://twitter.com/tomk79/)
 
 
