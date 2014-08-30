@@ -1,6 +1,6 @@
-【FESS】
+# FESS
+
 @author Tomoya Koyanagi (@tomk79)
---------
 
 FESS は、FrontEnd Standard Specification (フロントエンド標準仕様)の略称です。
 
