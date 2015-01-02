@@ -5,7 +5,7 @@ return call_user_func( function(){
 	$conf = new stdClass;
 
 	// project
-	$conf->name = 'Pickles 2'; // サイト名
+	$conf->name = 'FESS'; // サイト名
 	$conf->domain = null; // ドメイン
 	$conf->path_controot = '/FESS/'; // コンテンツルートディレクトリ
 
@@ -105,7 +105,7 @@ return call_user_func( function(){
 		'picklesFramework2\processors\autoindex\autoindex::exec' ,
 
 		// テーマ
-		'theme'=>'pickles2\themes\pickles\theme::exec' , 
+		'theme'=>'tomk79\FESS\themes\theme::exec' , 
 
 		// Apache互換のSSIの記述を解決する
 		'picklesFramework2\processors\ssi\ssi::exec' ,

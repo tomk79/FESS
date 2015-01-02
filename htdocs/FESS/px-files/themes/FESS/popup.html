@@ -1,0 +1,42 @@
+<?php
+	//↓ $page_info にページの情報を格納しています。
+	//	 test::var_dump( $page_info ); で、変数の内容を確認できます。
+	$page_info = $this->px->site()->get_current_page_info();
+	require_once( __DIR__.'/php/custom/funcs.php' );
+	$obj_custom_theme = new tomk79\FESS\themes\pxtheme_custom_funcs($px);
+?><!doctype html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<title><?php print htmlspecialchars($page_info['title']); ?> | <?php print htmlspecialchars($px->conf()->name); ?></title>
+<?php
+	include( $px->realpath_plugin_files('inc/setup.inc') );
+?>
+<?= $px->bowl()->pull('head') ?>
+</head>
+<body>
+<div id="page_top">
+<div class="theme_outline">
+<div class="theme_header">
+	<div class="logo"><?= htmlspecialchars($px->conf()->name); ?></div>
+</div><!-- /.theme_header -->
+<div class="theme_middle">
+<div class="theme_column1">
+<h1><?= preg_replace('/\r\n|\r|\n/s', '<br />', htmlspecialchars($px->site()->get_current_page_info( 'title_h1' )) ); ?></h1>
+<div id="content" class="contents">
+
+<?= $px->bowl()->pull() ?>
+
+</div><!-- /#content -->
+</div><!-- /.theme_column1 -->
+<div class="theme_column2">
+</div><!-- /.theme_column2 -->
+</div><!-- /theme_.middle -->
+<div class="theme_footer">
+	<div class="right small">[<a href="#page_top">ページの先頭へ戻る</a>]</div>
+	<div class="center">[<a href="javascript:window.close();">閉じる</a>]</div>
+</div><!-- /.theme_footer -->
+</div><!-- /.theme_outline -->
+</div><!-- /#page_top -->
+</body>
+</html>

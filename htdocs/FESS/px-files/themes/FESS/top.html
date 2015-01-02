@@ -1,0 +1,112 @@
+<?php
+	//↓ $page_info にページの情報を格納しています。
+	//	 test::var_dump( $page_info ); で、変数の内容を確認できます。
+	$page_info = $px->site()->get_current_page_info();
+	require_once( __DIR__.'/php/custom/funcs.php' );
+	$obj_custom_theme = new tomk79\FESS\themes\pxtheme_custom_funcs($px);
+?><!doctype html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<title><?= htmlspecialchars($px->conf()->name); ?></title>
+<?php
+	include( $px->realpath_plugin_files('inc/setup.inc') );
+?>
+<?= $px->bowl()->pull('head') ?>
+</head>
+<body id="page_top">
+
+<div class="theme_outline">
+<div class="theme_header">
+	<div class="logo"><a href="<?= htmlspecialchars( $px->href('') ); ?>"><?= htmlspecialchars($px->conf()->name); ?></a></div>
+	<div class="breadcrumb"><?= $theme->mk_breadcrumb() ?></div>
+</div><!-- /.theme_header -->
+<div class="theme_middle">
+<div class="theme_column1">
+<h1><?= htmlspecialchars($px->conf()->name); ?></h1>
+<div id="content" class="contents">
+
+<?= $px->bowl()->pull() ?>
+
+</div><!-- /#content -->
+
+</div><!-- /.theme_column1 -->
+<div class="theme_column2">
+<div class="theme_localnavi">
+
+<?php
+	$local_bros_page_info = $obj_custom_theme->get_gnavi_category_list();
+?>
+
+<?php
+if( count($local_bros_page_info) ){
+	print '<ul>'."\n";
+	foreach( $local_bros_page_info as $local_page_id ){
+		$local_page_info = $px->site()->get_page_info($local_page_id);
+		print '<li>';
+		print $px->mk_link($local_page_info['path']);
+		if( $px->site()->is_page_in_breadcrumb( $local_page_info['id'] ) ){
+			print $obj_custom_theme->mk_html_gnavi( $local_page_info['id'], 1 );
+		}
+		print '</li>'."\n";
+	}//foreach
+	print '</ul>'."\n";
+}//if
+?>
+</div><!-- /.theme_localnavi -->
+
+</div><!-- /.theme_column2 -->
+</div><!-- /.theme_middle -->
+
+<div class="theme_back_to_page_top"><a href="#page_top" class="up">ページの先頭へ戻る</a></div>
+
+</div><!-- /.theme_outline -->
+
+
+<?php
+	$gnavi_category_list = $obj_custom_theme->get_gnavi_category_list();
+	$src = '';
+	if( count($gnavi_category_list) ){
+		$src .= '<div class="theme_megafooter"><div class="theme_megafooter-outline"><div class="theme_megafooter-inner">';
+		foreach( $gnavi_category_list as $row_page_id){
+			$src .= '<div class="theme_megafooter-cell"><div class="theme_megafooter-pad">';
+			$src .= '<p>'.$this->px->mk_link($row_page_id).'</p>';
+			$children = $this->px->site()->get_children($row_page_id);
+			if( count($children) ){
+				$src .= '<ul>';
+				foreach( $children as $child ){
+					$src .= '<li>'.$this->px->mk_link($child).'</li>';
+				}
+				$src .= '</ul>';
+			}
+			$src .= '</div></div>';
+		}
+		$src .= '</div></div></div><!-- /.theme_megafooter -->';
+	}
+	print $src;
+
+	unset($src);
+?>
+
+<div class="theme_footer"><div class="theme_footer-inner">
+<?php
+	$src = '';
+	$shouldernavi_list = $obj_custom_theme->get_shouldernavi_list();
+	if( count($shouldernavi_list) ){
+		$src .= '<div class="theme_footer_shouldernavi">';
+		$src .= '<ul>';
+		foreach( $shouldernavi_list as $row_page_id ){
+			$src .= '<li>'.$this->px->mk_link($row_page_id, array('class'=>'icon')).'</li>';
+		}
+		$src .= '</ul>';
+		$src .= '</div><!-- /.theme_footer_shouldernavi -->';
+	}
+	print $src;
+	unset($src);
+?>
+	<div class="breadcrumb"><?= $theme->mk_breadcrumb() ?></div>
+	<div class="theme_footer-copyright">(C)Tomoya Koyanagi.</div>
+</div></div><!-- /.theme_footer -->
+
+</body>
+</html>

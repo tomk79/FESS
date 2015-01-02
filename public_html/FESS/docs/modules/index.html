@@ -1,12 +1,64 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<title>ドキュメントモジュール | FESS</title>
+<!-- インクルードエリア -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="keywords" content="" />
+<meta name="description" content="" />
+
+ <link rel="stylesheet" href="/FESS/common/css/modules.css" type="text/css" />
+<script src="/FESS/common/js/jquery-1.10.1.min.js" type="text/javascript"></script>
+
+<link rel="stylesheet" href="/FESS/caches/p/theme/css/common.css" type="text/css" />
+
+<!-- / インクルードエリア -->
+<style type="text/css">
+.cont_exam{
+	font-size:90%;
+	color:#888888;
+}
+</style>
+</head>
+<body id="page_top">
+
+<div class="theme_outline">
+<div class="theme_header">
+	<div class="logo"><a href="/FESS/">FESS</a></div>
+	<div class="breadcrumb"><ul><li><a href="/FESS/">ホーム</a></li><li><span>ドキュメントモジュール</span></li></ul></div>
+</div><!-- /.theme_header -->
+<div class="theme_middle">
+<div class="theme_column1">
+<h1>ドキュメントモジュール</h1>
+<div id="content" class="contents">
+
 
 <p>
 	このドキュメントは、コンテンツを構成するドキュメントモジュールの定義を含んだ、FESSが規定する標準のコーディング規則について説明します。<br />
 </p>
 
 <!-- autoindex -->
+<div class="anchor_links">
+<p class="anchor_links-heading">目次</p><ul><li><a href="#hash_ロール(役割)の定義">ロール(役割)の定義</a></li>
+<li><a href="#hash_設計方針">設計方針</a></li>
+<li><a href="#hash_ターゲットデバイスについての考え方">ターゲットデバイスについての考え方</a></li>
+<li><a href="#hash_文字セットと改行コード">文字セットと改行コード</a><ul><li><a href="#hash_文字セット">文字セット</a></li>
+<li><a href="#hash_改行コード">改行コード</a></li></ul></li><li><a href="#hash_命名規則">命名規則</a><ul><li><a href="#hash_サブモジュールの定義指針">サブモジュールの定義指針</a></li>
+<li><a href="#hash_接頭辞_cont_について">接頭辞 cont について</a></li>
+<li><a href="#hash_名称の省略について">名称の省略について</a></li></ul></li><li><a href="#hash_共通ドキュメントモジュール">共通ドキュメントモジュール</a><ul><li><a href="#hash_ドキュメントモジュールの4つの分類">ドキュメントモジュールの4つの分類</a></li></ul></li><li><a href="#hash_コンテンツ独自モジュールを定義する場合の規則">コンテンツ独自モジュールを定義する場合の規則</a><ul><li><a href="#hash_独自ファイル格納ディレクトリ">独自ファイル格納ディレクトリ</a></li>
+<li><a href="#hash_コンテンツ独自CSSを定義する">コンテンツ独自CSSを定義する</a></li>
+<li><a href="#hash_コンテンツ独自JavaScriptを定義する">コンテンツ独自JavaScriptを定義する</a></li>
+<li><a href="#hash_JavaScriptライブラリの利用">JavaScriptライブラリの利用</a><ul><li><a href="#hash_テーマがロードするJavaScriptライブラリ">テーマがロードするJavaScriptライブラリ</a></li>
+<li><a href="#hash_コンテンツによって必要な場合にロードできる共有ライブラリ">コンテンツによって必要な場合にロードできる共有ライブラリ</a></li></ul>
+</li></ul>
+</li></ul>
+</div><!-- /.anchor_links -->
+<!-- / autoindex -->
 
 
-<h2>ロール(役割)の定義</h2>
+
+<span id="hash_ロール(役割)の定義"></span><h2>ロール(役割)の定義</h2>
 <p>
 	このドキュメントでは、2種類のロール(役割)が登場します。<br />
 </p>
@@ -18,7 +70,7 @@
 </dl>
 
 
-<h2>設計方針</h2>
+<span id="hash_設計方針"></span><h2>設計方針</h2>
 <p>
 	ドキュメントモジュールおよびコーディング規則は、次の方針に基づいて設計されます。<br />
 </p>
@@ -29,37 +81,29 @@
 </ul>
 
 
-<h2>ターゲットデバイスについての考え方</h2>
+<span id="hash_ターゲットデバイスについての考え方"></span><h2>ターゲットデバイスについての考え方</h2>
 
 <p>
 	ターゲットデバイスの種類については、意識しない(=<strong>マルチデバイスに対応できるように設計する</strong>)ものとします。<br />
 </p>
 
-<h2>文字セットと改行コード</h2>
+<span id="hash_文字セットと改行コード"></span><h2>文字セットと改行コード</h2>
 
-<h3>文字セット</h3>
+<span id="hash_文字セット"></span><h3>文字セット</h3>
 <p>
 	テキスト系のファイルタイプ全般において、文字セットは UTF-8(BOMなし) で統一します。<br />
 </p>
 
-<h3>改行コード</h3>
+<span id="hash_改行コード"></span><h3>改行コード</h3>
 <p>
 	テキスト系のファイルタイプ全般において、改行コードは CRLF で統一します。<br />
 </p>
 
 
-<h2>命名規則</h2>
+<span id="hash_命名規則"></span><h2>命名規則</h2>
 
 <p>次の命名規則を原則とします。</p>
 
-<?php ob_start(); ?>
-<style type="text/css">
-.cont_exam{
-	font-size:90%;
-	color:#888888;
-}
-</style>
-<?php $px->bowl()->send( ob_get_clean(), 'head' ); ?>
 <dl>
 	<dt>PHP</dt>
 		<dd>
@@ -93,7 +137,7 @@
 </dl>
 
 
-<h3>サブモジュールの定義指針</h3>
+<span id="hash_サブモジュールの定義指針"></span><h3>サブモジュールの定義指針</h3>
 <p>
 	サブモジュールは、モジュールの一部として使用されることが前提となるクラスです。属するモジュールの名前を冠し、後ろにハイフンでサブモジュール名を付加するように命名します。<br />
 </p>
@@ -145,7 +189,7 @@
 
 
 
-<h3>接頭辞 cont について</h3>
+<span id="hash_接頭辞_cont_について"></span><h3>接頭辞 cont について</h3>
 <p>
 	接頭辞 cont は、設計者と制作者の名前領域を分ける目的で、コンテンツ独自のモジュールに対してつける予約語です。<br />
 </p>
@@ -157,7 +201,7 @@
 	</span>
 </p>
 
-<h3>名称の省略について</h3>
+<span id="hash_名称の省略について"></span><h3>名称の省略について</h3>
 <p>
 	クラス名等の命名に省略形を使用するべきかどうかについて、厳密な取り決めは設けませんが、次のような基準を設け、適切な名称を検討するようにします。<br />
 </p>
@@ -167,7 +211,7 @@
 	<li>頻繁に使うクラスでも、構造が複雑なモジュールには、フルスペルの名称が適しています。これは、モジュール集からコピー＆ペーストしてコーディングする運用が想定されるため、タイピングのコストやミスタイプのリスクが低いと考えられるためです。</li>
 </ul>
 
-<h2>共通ドキュメントモジュール</h2>
+<span id="hash_共通ドキュメントモジュール"></span><h2>共通ドキュメントモジュール</h2>
 
 <p>
 	ドキュメントモジュールは、構成要素単位で構造化されたHTMLとCSSのセットであり、サイト全体の管理者(=設計者)により定義され、コンテンツ個別の制作者に配布されるものです。<br />
@@ -179,7 +223,7 @@
 	制作者は、ここに定義されていないドキュメントモジュールを独自に開発することができます(独自ドキュメントモジュール設計規則については<a href="#cont_contents_custom_modules">コンテンツ独自ドキュメントモジュールの定義</a>を参照)が、これは通常推奨されません。独自ドキュメントモジュールを多く開発すると、サイト全体のルールが次第に崩れてくる恐れがあり、管理効率が著しく低下するためです。極力、このドキュメントに定義された、設計者によって設計、提供されたドキュメントモジュールのみを使ってコンテンツを構築するようにしてください。<br />
 </p>
 
-<h3>ドキュメントモジュールの4つの分類</h3>
+<span id="hash_ドキュメントモジュールの4つの分類"></span><h3>ドキュメントモジュールの4つの分類</h3>
 <p>共通ドキュメントモジュールは、それぞれ<strong>ユニットモジュール</strong>、<strong>パーツモジュール</strong>、<strong>スタティックモジュール</strong>、<strong>ボックスモジュール</strong>の4種類のグループに分類されます。</p>
 
 <dl>
@@ -194,14 +238,14 @@
 </dl>
 
 
-<h2 id="cont_contents_custom_modules">コンテンツ独自モジュールを定義する場合の規則</h2>
+<span id="hash_コンテンツ独自モジュールを定義する場合の規則"></span><h2 id="cont_contents_custom_modules">コンテンツ独自モジュールを定義する場合の規則</h2>
 
 <p>
 	サイト全体(テーマ)で一元的に管理されているモジュールと干渉しあわないように、いくつかの規則が用意されています。<br />
 	コンテンツ独自のCSS、JavaScriptを定義する場合の規則 についても含みます。<br />
 </p>
 
-<h3>独自ファイル格納ディレクトリ</h3>
+<span id="hash_独自ファイル格納ディレクトリ"></span><h3>独自ファイル格納ディレクトリ</h3>
 
 <p>
 	コンテンツファイルと同じ階層に、コンテンツファイルと同じ名前の拡張子を <code>_files</code> に変えた名前のディレクトリが、コンテンツ独自のファイル格納場所です。<br />
@@ -218,7 +262,7 @@
 		<!-- editor comment: common_files は common.html が占有するため、この目的には使えません。 -->
 </ul>
 
-<h3>コンテンツ独自CSSを定義する</h3>
+<span id="hash_コンテンツ独自CSSを定義する"></span><h3>コンテンツ独自CSSを定義する</h3>
 <p>
 	コンテンツが独自に定義するCSSは、サイト全体(テーマ)で一元的に管理されているCSSと干渉し合っては不都合があります。この問題を避けるため、次の規則が設けられました。<br />
 </p>
@@ -247,7 +291,7 @@
 
 
 
-<h3>コンテンツ独自JavaScriptを定義する</h3>
+<span id="hash_コンテンツ独自JavaScriptを定義する"></span><h3>コンテンツ独自JavaScriptを定義する</h3>
 
 <p>
 	コンテンツは独自にJavaSctiptを記述し、埋め込むことができます。<br />
@@ -259,8 +303,8 @@
 	<li>コンテンツが独自に定義したエレメントのid属性は、接頭辞contを付加する。</li>
 </ul>
 
-<h3>JavaScriptライブラリの利用</h3>
-<h4>テーマがロードするJavaScriptライブラリ</h4>
+<span id="hash_JavaScriptライブラリの利用"></span><h3>JavaScriptライブラリの利用</h3>
+<span id="hash_テーマがロードするJavaScriptライブラリ"></span><h4>テーマがロードするJavaScriptライブラリ</h4>
 <p>
 	以下のライブラリは、テーマにより標準的にロードするため、コンテンツが明示的にロードする必要はありません。<br />
 </p>
@@ -268,7 +312,7 @@
 	<li>jQuery (1.10.1)</li>
 </ul>
 
-<h4>コンテンツによって必要な場合にロードできる共有ライブラリ</h4>
+<span id="hash_コンテンツによって必要な場合にロードできる共有ライブラリ"></span><h4>コンテンツによって必要な場合にロードできる共有ライブラリ</h4>
 <p>
 	以下のライブラリは、共有リソースとしてテーマによって用意されていますが、特にコンテンツが必要としない限り、ロードはされません。<br />
 </p>
@@ -278,3 +322,38 @@
 
 
 
+
+</div><!-- /#content -->
+
+</div><!-- /.theme_column1 -->
+<div class="theme_column2">
+<div class="theme_localnavi">
+
+
+<ul>
+<li><a href="/FESS/docs/modules/" class="current">ドキュメントモジュール</a><ul>
+<li><a href="/FESS/docs/modules/units/">ユニットモジュール</a></li>
+<li><a href="/FESS/docs/modules/parts/">パーツモジュール</a></li>
+<li><a href="/FESS/docs/modules/statics/">スタティックモジュール</a></li>
+<li><a href="/FESS/docs/modules/boxes/">ボックスモジュール</a></li>
+</ul>
+</li>
+</ul>
+</div><!-- /.theme_localnavi -->
+
+</div><!-- /.theme_column2 -->
+</div><!-- /.theme_middle -->
+
+<div class="theme_back_to_page_top"><a href="#page_top" class="up">ページの先頭へ戻る</a></div>
+
+</div><!-- /.theme_outline -->
+
+
+<div class="theme_megafooter"><div class="theme_megafooter-outline"><div class="theme_megafooter-inner"><div class="theme_megafooter-cell"><div class="theme_megafooter-pad"><p><a href="/FESS/docs/modules/" class="current">ドキュメントモジュール</a></p><ul><li><a href="/FESS/docs/modules/units/">ユニットモジュール</a></li><li><a href="/FESS/docs/modules/parts/">パーツモジュール</a></li><li><a href="/FESS/docs/modules/statics/">スタティックモジュール</a></li><li><a href="/FESS/docs/modules/boxes/">ボックスモジュール</a></li></ul></div></div></div></div></div><!-- /.theme_megafooter -->
+<div class="theme_footer"><div class="theme_footer-inner">
+	<div class="breadcrumb"><ul><li><a href="/FESS/">ホーム</a></li><li><span>ドキュメントモジュール</span></li></ul></div>
+	<div class="theme_footer-copyright">(C)Tomoya Koyanagi.</div>
+</div></div><!-- /.theme_footer -->
+
+</body>
+</html>

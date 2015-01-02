@@ -1,11 +1,11 @@
 <?php
 /**
- * theme "pickles"
+ * theme "FESS"
  */
-namespace pickles2\themes\pickles;
+namespace tomk79\FESS\themes;
 
 /**
- * theme "pickles" class
+ * theme "FESS" class
  */
 class theme_top{
 	private $px, $theme;

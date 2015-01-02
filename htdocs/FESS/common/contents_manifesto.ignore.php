@@ -21,5 +21,5 @@
 	 //$pxがない(=直接アクセスされた)場合、ここで処理を抜ける。
  	if(!$px){return;}
  ?>
-<link rel="stylesheet" href="<?php print htmlspecialchars($px->href('/common/css/modules.css')); ?>" type="text/css" />
-<script src="<?php print htmlspecialchars($px->href('/common/js/jquery-1.10.1.min.js')); ?>" type="text/javascript"></script>
+<link rel="stylesheet" href="<?= htmlspecialchars($px->href('/common/css/modules.css')); ?>" type="text/css" />
+<script src="<?= htmlspecialchars($px->href('/common/js/jquery-1.10.1.min.js')); ?>" type="text/javascript"></script>
