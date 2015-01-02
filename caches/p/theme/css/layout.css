@@ -179,7 +179,7 @@ body{
 }
 .theme_megafooter .theme_megafooter-cell{
 	float:left;
-		width:100%;
+	width:100%;
 }
 @media all and (max-width: 590px){
 	.theme_megafooter .theme_megafooter-cell{
