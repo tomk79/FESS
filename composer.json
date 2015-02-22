@@ -1,0 +1,20 @@
+{
+    "name": "tomk79/FESS",
+    "description": "FESS は、一般的によく利用されるCSSドキュメントモジュールを集めた、基本定義集です。",
+    "keywords": [],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Tomoya Koyanagi",
+            "email": "tomk79@gmail.com"
+        }
+    ],
+    "require": {
+    },
+    "require-dev": {
+    },
+    "autoload": {
+        "files": [
+        ]
+    }
+}

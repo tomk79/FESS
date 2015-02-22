@@ -1,5 +1,7 @@
 htdocs/FESS/caches/*
 htdocs/FESS/px-files/_sys/ram/*
+/vendor/
+composer.lock
 .sass-cache/*
 .DS_Store
 Thumbs.db

@@ -2,7 +2,8 @@
 
 @author Tomoya Koyanagi (@tomk79)
 
-FESS は、FrontEnd Standard Specification (フロントエンド標準仕様)の略称です。
+FESS は、一般的によく利用されるCSSドキュメントモジュールを集めた、基本定義集です。
+FrontEnd Standard Specification (フロントエンド標準仕様)の略称です。
 
 もともと、Pickles Framework 1.x系 プロジェクトの
 一部 ドキュメントモジュール仕様 として定義されていたものを、
