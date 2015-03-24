@@ -64,6 +64,15 @@ div.unit {
     &.cols-1of5 {
       width: 20%;
     }
+    &.cols-2of5 {
+      width: 40%;
+    }
+    &.cols-3of5 {
+      width: 60%;
+    }
+    &.cols-4of5 {
+      width: 80%;
+    }
   }
   .cols-pad {
     margin-left: 20px;
