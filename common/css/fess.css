@@ -1,6 +1,6 @@
 @charset "UTF-8";
 /**
- * FESS 1.2.0
+ * FESS 1.2.0-nb
  * @author Tomoya Koyanagi <tomk79@gmail.com>
  */
 /**
@@ -1138,6 +1138,18 @@ div.unit {
 }
 .cols .cols-col.cols-1of4 {
   width: 25%;
+}
+.cols .cols-col.cols-1of5 {
+  width: 20%;
+}
+.cols .cols-col.cols-2of5 {
+  width: 40%;
+}
+.cols .cols-col.cols-3of5 {
+  width: 60%;
+}
+.cols .cols-col.cols-4of5 {
+  width: 80%;
 }
 .cols .cols-pad {
   margin-left: 20px;
