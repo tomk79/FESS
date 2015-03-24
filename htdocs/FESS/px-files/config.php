@@ -84,6 +84,9 @@ return call_user_func( function(){
 		 // PX=phpinfo
 		'picklesFramework2\commands\phpinfo::register' ,
 
+		// sitemapExcel
+		'tomk79\pickles2\sitemap_excel\pickles_sitemap_excel::exec'
+
 	];
 
 	// funcs: Before content
@@ -143,6 +146,16 @@ return call_user_func( function(){
 
 	// funcs: Before output
 	$conf->funcs->before_output = [
+	];
+
+
+	// config for Plugins.
+	$conf->plugins = new stdClass;
+
+	// config for Pickles2 Desktop Tool.
+	$conf->plugins->px2dt = new stdClass;
+	$conf->plugins->px2dt->paths_module_template = [
+        "FESS" => "../../resources/px2dt_modules/"
 	];
 
 
