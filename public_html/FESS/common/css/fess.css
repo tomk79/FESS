@@ -1,6 +1,6 @@
 @charset "UTF-8";
 /**
- * FESS 1.2.1
+ * FESS 1.2.2
  * @author Tomoya Koyanagi <tomk79@gmail.com>
  */
 /**
@@ -1431,55 +1431,6 @@ code {
 /**
  * [parts] フォーム要素
  */
-button,
-input[type=button],
-input[type=submit] {
-  padding: 0.5em 2.5em 0.5em 2.5em;
-  display: inline-block;
-  background-color: #f3f3f3;
-  border-radius: 0.2em;
-  border: 0;
-  -webkit-box-shadow: 0.1em 0.2em 0 0 #cccccc;
-  -moz-box-shadow: 0.1em 0.2em 0 0 #cccccc;
-  -ms-box-shadow: 0.1em 0.2em 0 0 #cccccc;
-  box-shadow: 0.1em 0.2em 0 0 #cccccc;
-}
-button:hover,
-input[type=button]:hover,
-input[type=submit]:hover {
-  background-color: #e9e9e9;
-}
-button:active,
-input[type=button]:active,
-input[type=submit]:active {
-  background-color: #ddd;
-}
-@media all and (max-width: 520px) {
-  button,
-  input[type=button],
-  input[type=submit] {
-    padding: 0.2em 1.5em;
-  }
-}
-@media all and (max-width: 430px) {
-  button,
-  input[type=button],
-  input[type=submit] {
-    padding: 0.2em 0.5em;
-  }
-}
-
-select {
-  display: inline-block;
-  background-color: #f3f3f3;
-  border-radius: 0.2em;
-  border: 0;
-  -webkit-box-shadow: 0.1em 0.2em 0 0 #cccccc;
-  -moz-box-shadow: 0.1em 0.2em 0 0 #cccccc;
-  -ms-box-shadow: 0.1em 0.2em 0 0 #cccccc;
-  box-shadow: 0.1em 0.2em 0 0 #cccccc;
-}
-
 @media all and (max-width: 520px) {
   table.form_elements {
     border-bottom: 1px solid;
@@ -1509,22 +1460,6 @@ select {
   padding: 0.2em 0.8em;
   font-size: 90%;
   border-radius: 1.2em;
-}
-
-/**
- * [unit] フォーム送信ボタン
- */
-.form_buttons .form_buttons-submit button,
-.form_buttons .form_buttons-submit input[type=button],
-.form_buttons .form_buttons-submit input[type=submit] {
-  font-weight: bold;
-  font-size: 130%;
-  background-color: #beb;
-}
-.form_buttons .form_buttons-revise button,
-.form_buttons .form_buttons-revise input[type=button],
-.form_buttons .form_buttons-revise input[type=submit] {
-  font-size: 80%;
 }
 
 /**
