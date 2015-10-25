@@ -38,23 +38,23 @@
 	このドキュメントは、コンテンツを構成するドキュメントモジュールの定義を含んだ、FESSが規定する標準のコーディング規則について説明します。<br />
 </p>
 
-<!-- autoindex -->
-<div class="anchor_links">
-<p class="anchor_links-heading">目次</p><ul><li><a href="#hash_ロール(役割)の定義">ロール(役割)の定義</a></li>
-<li><a href="#hash_設計方針">設計方針</a></li>
-<li><a href="#hash_ターゲットデバイスについての考え方">ターゲットデバイスについての考え方</a></li>
-<li><a href="#hash_文字セットと改行コード">文字セットと改行コード</a><ul><li><a href="#hash_文字セット">文字セット</a></li>
-<li><a href="#hash_改行コード">改行コード</a></li></ul></li><li><a href="#hash_命名規則">命名規則</a><ul><li><a href="#hash_サブモジュールの定義指針">サブモジュールの定義指針</a></li>
-<li><a href="#hash_接頭辞_cont_について">接頭辞 cont について</a></li>
-<li><a href="#hash_名称の省略について">名称の省略について</a></li></ul></li><li><a href="#hash_共通ドキュメントモジュール">共通ドキュメントモジュール</a><ul><li><a href="#hash_ドキュメントモジュールの4つの分類">ドキュメントモジュールの4つの分類</a></li></ul></li><li><a href="#hash_コンテンツ独自モジュールを定義する場合の規則">コンテンツ独自モジュールを定義する場合の規則</a><ul><li><a href="#hash_独自ファイル格納ディレクトリ">独自ファイル格納ディレクトリ</a></li>
-<li><a href="#hash_コンテンツ独自CSSを定義する">コンテンツ独自CSSを定義する</a></li>
-<li><a href="#hash_コンテンツ独自JavaScriptを定義する">コンテンツ独自JavaScriptを定義する</a></li>
-<li><a href="#hash_JavaScriptライブラリの利用">JavaScriptライブラリの利用</a><ul><li><a href="#hash_テーマがロードするJavaScriptライブラリ">テーマがロードするJavaScriptライブラリ</a></li>
-<li><a href="#hash_コンテンツによって必要な場合にロードできる共有ライブラリ">コンテンツによって必要な場合にロードできる共有ライブラリ</a></li></ul>
+<!-- == autoindex == -->
+<div style="margin:2em 5%; border:1px solid #bbb; padding:1em; background:rgba(124, 124, 124, 0.05); border-radius:5px;">
+<div style="margin:0; padding:0; text-align:center; font-weight:bold;">INDEX</div><ul style="margin:0; padding:0 0 0 2em;"><li style="list-style-type:disc; display:list-item;"><a href="#hash_ロール(役割)の定義">ロール(役割)の定義</a></li>
+<li style="list-style-type:disc; display:list-item;"><a href="#hash_設計方針">設計方針</a></li>
+<li style="list-style-type:disc; display:list-item;"><a href="#hash_ターゲットデバイスについての考え方">ターゲットデバイスについての考え方</a></li>
+<li style="list-style-type:disc; display:list-item;"><a href="#hash_文字セットと改行コード">文字セットと改行コード</a><ul style="margin:0; padding:0 0 0 2em;"><li style="list-style-type:disc; display:list-item;"><a href="#hash_文字セット">文字セット</a></li>
+<li style="list-style-type:disc; display:list-item;"><a href="#hash_改行コード">改行コード</a></li></ul></li><li style="list-style-type:disc; display:list-item;"><a href="#hash_命名規則">命名規則</a><ul style="margin:0; padding:0 0 0 2em;"><li style="list-style-type:disc; display:list-item;"><a href="#hash_サブモジュールの定義指針">サブモジュールの定義指針</a></li>
+<li style="list-style-type:disc; display:list-item;"><a href="#hash_接頭辞_cont_について">接頭辞 cont について</a></li>
+<li style="list-style-type:disc; display:list-item;"><a href="#hash_名称の省略について">名称の省略について</a></li></ul></li><li style="list-style-type:disc; display:list-item;"><a href="#hash_共通ドキュメントモジュール">共通ドキュメントモジュール</a><ul style="margin:0; padding:0 0 0 2em;"><li style="list-style-type:disc; display:list-item;"><a href="#hash_ドキュメントモジュールの4つの分類">ドキュメントモジュールの4つの分類</a></li></ul></li><li style="list-style-type:disc; display:list-item;"><a href="#hash_コンテンツ独自モジュールを定義する場合の規則">コンテンツ独自モジュールを定義する場合の規則</a><ul style="margin:0; padding:0 0 0 2em;"><li style="list-style-type:disc; display:list-item;"><a href="#hash_独自ファイル格納ディレクトリ">独自ファイル格納ディレクトリ</a></li>
+<li style="list-style-type:disc; display:list-item;"><a href="#hash_コンテンツ独自CSSを定義する">コンテンツ独自CSSを定義する</a></li>
+<li style="list-style-type:disc; display:list-item;"><a href="#hash_コンテンツ独自JavaScriptを定義する">コンテンツ独自JavaScriptを定義する</a></li>
+<li style="list-style-type:disc; display:list-item;"><a href="#hash_JavaScriptライブラリの利用">JavaScriptライブラリの利用</a><ul style="margin:0; padding:0 0 0 2em;"><li style="list-style-type:disc; display:list-item;"><a href="#hash_テーマがロードするJavaScriptライブラリ">テーマがロードするJavaScriptライブラリ</a></li>
+<li style="list-style-type:disc; display:list-item;"><a href="#hash_コンテンツによって必要な場合にロードできる共有ライブラリ">コンテンツによって必要な場合にロードできる共有ライブラリ</a></li></ul>
 </li></ul>
 </li></ul>
-</div><!-- /.anchor_links -->
-<!-- / autoindex -->
+</div>
+<!-- / == autoindex == -->
 
 
 
